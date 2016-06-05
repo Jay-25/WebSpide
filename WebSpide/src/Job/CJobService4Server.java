@@ -36,21 +36,26 @@ import Log.CLog;
  * @version V1.0
  */
 public class CJobService4Server {
-
+	
 	private static Logger            logger             = CLog.getLogger();
 	private final String             key_Server_Running = "Server-Running";
 	private CJobQueue                jobQueue           = null;
 	private CJobService4ServerConfig config             = null;
-
+	private boolean                  isOnceModel        = false;
+	
 	public CJobService4Server(CJobQueue jobQueue, CJobService4ServerConfig config) {
 		this.jobQueue = jobQueue;
 		this.config = config;
 	}
-
+	
 	public void ignoreSpided() {
 		jobQueue.empty(CJobQueue.MDB_INDEX_LOG);
 	}
-
+	
+	public void setOnceModel(boolean isOnceModel) {
+		this.isOnceModel = isOnceModel;
+	}
+	
 	public void run(boolean force) {
 		if (force) {
 			jobQueue.empty(CJobQueue.QUEUE_INDEX_JOB);
@@ -60,14 +65,14 @@ public class CJobService4Server {
 		}
 		//
 		new Thread(new Runnable() {
-
+			
 			@Override
 			public void run() {
 				logger.info("--- Server Running ---");
 				Jedis jedis = jobQueue.getJedis(CJobQueue.MDB_INDEX_SERVER);
 				jedis.set(key_Server_Running, "1");
 				FilenameFilter filenameFilter = new FilenameFilter() {
-
+					
 					@Override
 					public boolean accept(File dir, String name) {
 						return name.endsWith(config.getJobFileExName());
@@ -116,13 +121,15 @@ public class CJobService4Server {
 					jobList = null;
 					System.out.println("Jobs Number: " + jobQueue.length(CJobQueue.QUEUE_INDEX_JOB));
 					System.out.println();
+					//
+					if (isOnceModel) return;
 				}
 				jedis.close();
 				filenameFilter = null;
 			}
 		}, "Trd-" + getClass().getName() + "-run").start();
 	}
-
+	
 	public void stop(boolean toEmpty) {
 		Jedis jedis = jobQueue.getJedis(CJobQueue.MDB_INDEX_SERVER);
 		jedis.set(key_Server_Running, "0");
@@ -133,7 +140,7 @@ public class CJobService4Server {
 		}
 		jedis.close();
 	}
-
+	
 	private ArrayList<String> getJobListFromFile(File file) {
 		ArrayList<String> jobList = new ArrayList<String>();
 		String path = "";
@@ -207,7 +214,7 @@ public class CJobService4Server {
 		}
 		return jobList;
 	}
-
+	
 	private void sleep(int ms) {
 		try {
 			Thread.sleep(ms);

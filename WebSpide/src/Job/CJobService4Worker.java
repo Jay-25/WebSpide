@@ -82,7 +82,7 @@ public class CJobService4Worker {
 		this.queue.empty(CJobQueue.MDB_INDEX_RUNNING);
 	}
 	
-	public void run(final boolean daemon) {
+	public void run(final boolean once) {
 		jobCounter.init(config.getJobNum(), queue.length(CJobQueue.QUEUE_INDEX_JOB));
 		new Thread(new Runnable() {
 			
@@ -96,9 +96,9 @@ public class CJobService4Worker {
 						jobCounter.update(queue.length(CJobQueue.QUEUE_INDEX_JOB));
 						//
 						jobCounter.decrement();
-						runConsole(daemon);
+						runConsole(once);
 						//
-						if (!daemon) break;
+						if (once) break;
 					}
 					catch (Exception e) {
 						logger.warn(e.getMessage(), e);
@@ -108,7 +108,7 @@ public class CJobService4Worker {
 		}, "Trd-" + getClass().getName() + "-run").start();
 	}
 	
-	private void runConsole(final boolean daemon) {
+	private void runConsole(final boolean once) {
 		new Thread(new Runnable() {
 			
 			@Override
@@ -127,7 +127,7 @@ public class CJobService4Worker {
 					else {
 						jedisRunning.set(jobString, "1");
 						try {
-							if (worker.execute(jobString) && daemon) {
+							if (worker.execute(jobString) && !once) {
 								queue.addJob(CJobQueue.QUEUE_INDEX_RESULT, jobString);
 								logger.info("Job SUCCESS and return QUEUE_INDEX_RESULT : " + jobString);
 							}

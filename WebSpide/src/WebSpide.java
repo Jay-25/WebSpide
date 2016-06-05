@@ -33,11 +33,13 @@ public class WebSpide {
 			System.out.println("java -jar WebSpideClient.jar <-c inifile>");
 			System.out.println("option:");
 			System.out.println("       -c <ini file> : config file.");
-			System.out.println("       -dic <path> : segment dic path.");
+			System.out.println("       -dic <path>   : segment dic path.");
+			System.out.println("       -once         : once model.");
 			return;
 		}
 		//
 		String iniFileName = "";
+		boolean once = false;
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-c")) {
 				iniFileName = args[i + 1];
@@ -46,6 +48,9 @@ public class WebSpide {
 			else if (args[i].equals("-dic")) {
 				CSegment.getInstance().loadCustomDic(args[i + 1]);
 				i++;
+			}
+			else if (args[i].equals("-once")) {
+				once = true;
 			}
 		}
 		//
@@ -73,7 +78,7 @@ public class WebSpide {
 					return result;
 				}
 			});
-			jobService4Worker.run(true);
+			jobService4Worker.run(once);
 		}
 		catch (Exception e) {
 			logger.error(e.getMessage(), e);

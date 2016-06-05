@@ -43,6 +43,7 @@ public class WebSpideServer {
 			System.out.println("       -keep         : keep on queue.");
 			System.out.println("       -force        : force to ignore spided and restart.");
 			System.out.println("       -stop         : stop server.");
+			System.out.println("       -once         : once model.");
 			return;
 		}
 		//
@@ -50,6 +51,7 @@ public class WebSpideServer {
 		boolean keep = false;
 		boolean force = false;
 		boolean stop = false;
+		boolean once = false;
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-c")) {
 				iniFileName = args[i + 1];
@@ -63,6 +65,9 @@ public class WebSpideServer {
 			}
 			else if (args[i].equals("-stop")) {
 				stop = true;
+			}
+			else if (args[i].equals("-once")) {
+				once = true;
 			}
 		}
 		logger.info("WebSpideServer" + (keep ? "(keep)" : "") + (force ? "(force)" : ""));
@@ -78,6 +83,7 @@ public class WebSpideServer {
 			jobService4Server.stop(!keep);
 		}
 		else {
+			jobService4Server.setOnceModel(once);
 			jobService4Server.run(!keep);
 		}
 	}

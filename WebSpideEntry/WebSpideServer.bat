@@ -4,7 +4,7 @@ chcp 936
 title=%CD%
 
 set APP=WebSpideServer.jar
-set APP_PARAS=-c E:\Homework\Ing\WebSpide\WebSpideEntry\webspide.ini -force
+set APP_PARAS=-c E:\Homework\Ing\WebSpide\WebSpideEntry\webspide.ini -force -once
 ::set APP_PARAS=-c E:\Homework\Ing\WebSpide\WebSpideEntry\webspide.ini -keep
 
 ::set Jconsole_OPTS=-Dcom.sun.management.jmxremote.port=9999 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false
@@ -13,4 +13,4 @@ set JAVA_OPTS=-Xverify:none -Xms1024M -Xmx1024M -Xmn600M -Xss1M -XX:ParallelGCTh
 
 :REDO
 if exist %APP% (java %JAVA_OPTS% %Code_OPTS% %Jconsole_OPTS% -jar %APP% %APP_PARAS% %*) else echo %APP% not exit! & exit
-goto REDO
+::goto REDO

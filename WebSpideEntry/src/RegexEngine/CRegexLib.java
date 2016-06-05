@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import Algorithm.Math.CExpression;
 import Extract.RegexEngine.CRegex;
@@ -145,7 +146,7 @@ public class CRegexLib {
 	public static List<CRegex> houseStyleRegex(String prefix, String suffix) {
 		final String keywords = "房|室|卧|厅|厨|卫|阳台";
 		List<CRegex> regexs = new ArrayList<CRegex>();
-		regexs.add(new CRegex(prefix + "((([0-9]+|[零一二三四五六七八九]+)(" + keywords + ")[ ]*)+)" + suffix).setDeepSelect(new CDeepSelect(keywords, "")).setDataDeal(new CRegex.IDeal() {
+		regexs.add(new CRegex(prefix + "((([0-9]+|[零一二三四五六七八九]+)(" + keywords + ")[ ]*)+)" + suffix).setDeepSelect(new CDeepSelect(keywords)).setDataDeal(new CRegex.IDeal() {
 			
 			@Override
 			public String deal(String data) {
@@ -175,21 +176,24 @@ public class CRegexLib {
 	}
 	
 	public static List<CRegex> addressRegex(String prefix, String suffix) {
-		final String cnReg = "[\u4e00-\u9fa5]";// 中文
-		final String keywords = "( |省|市|县|区|乡|镇|村|圃|屯|旗|盟|州|路口|路|郡|街|道口|道|小区|区|支|弄|巷|里|站|栋|幢|号|座|楼|府|公寓|大厦|公司|银行|医院|酒吧|小学|中学|大学|超市|大队|世界|中心|单元|校|层|库|池|社|会|厂|团|寺|场|园|苑|馆|局|部|室|所|城|店|院|公里|米|旁边|附近|斜|对面|东|西|南|北|前|后|左|右|内|侧|交叉口|交口|交界处|交汇处|河边)";
-		final String outKeywords = "楼层|楼道|客厅|社会|寺院|校区|图片|更多";
-		final String reg = "[\\pP\\s]*((" + cnReg + "+[^" + outKeywords + "]+?" + keywords + "+)+)[\\pP\\s]*";
+		// 中文         \u4e00-\u9fa5
+		// 全角数字 \uff10-\uff19
+		// 全角英文 \uff21-\uff3a\uff41-\uff5a
+		final String keywords = " |省|市|县|区|乡|镇|村|圃|屯|旗|盟|州|路口|路|郡|街|道口|道|小区|区|支|弄|巷|里|站|栋|幢|号|座|楼|府|公寓|大厦|公司|银行|医院|酒吧|小学|中学|大学|超市|大队|世界|中心|单元|校|层|库|池|社|会|厂|团|寺|场|园|苑|馆|局|部|室|所|城|店|院|公里|米|地块|旁边|附近|斜|对面|东|西|南|北|前|后|左|右|内|侧|交叉口|交口|交界处|交汇处|河边";
+		final String reg = "(((?<=\\b|\\s|\\pP)[\u4e00-\u9fa5]++[\uff10-\uff19\uff21-\uff3a\uff41-\uff5a,-]*.*?(?<=" + keywords + "\b))+)";
 		List<CRegex> regexs = new ArrayList<CRegex>();
-		regexs.add(new CRegex(prefix + reg + suffix, 1).setSize(50).setDeepSelect(new CDeepSelect(keywords, outKeywords)));
+		regexs.add(new CRegex(prefix + reg + suffix, 1).setSize(50).setDeepSelect(new CDeepSelect(keywords)));
 		return regexs;
 	}
 }
 
 class CDeepSelect implements CRegex.IDeepSelect {
 	
-	private String[] ws = null;
+	private static Pattern pattenOut = Pattern.compile("(?is)(\\pP[t|b|z|r|d|p|c|e|y|o|h|k][a-z]*)|(\\pP[u](?!serDefine)[a-z]*)");
+	private static double  avgAddLen = 25;
+	private String[]       ws        = null;
 	
-	public CDeepSelect(String keywords, String outKeywords) {
+	public CDeepSelect(String keywords) {
 		ws = keywords.split("\\|");
 	}
 	
@@ -210,7 +214,6 @@ class CDeepSelect implements CRegex.IDeepSelect {
 				_newData = _newData.replaceAll(ws[i], "");
 			}
 		}
-		double avgAddLen = 30;
 		double deltaOld = 1.0 / (1 + Math.abs(avgAddLen - oldData.length()));
 		double deltaNew = 1.0 / (1 + Math.abs(avgAddLen - newData.length()));
 		oldws = _oldData.length() > 0 ? (deltaOld * oldws / _oldData.length()) : 0.0;
