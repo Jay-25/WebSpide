@@ -9,7 +9,7 @@ import java.util.HashSet;
 import redis.clients.jedis.Jedis;
 import Algorithm.Math.CEncry;
 import Algorithm.Math.CExpression;
-import DataSet.CDataSet;
+import DataSet.CDataSet4House;
 import DateTime.CDateTime;
 import Extract.Reduce.CHtmlReduce;
 import Extract.Reduce.CHtmlTrim;
@@ -63,7 +63,7 @@ public class Cfocus extends SpideEntryBase {
 	
 	@Override
 	protected void init() {
-		dataSet = CDataSet.createDataSet(this.getClass().getName());
+		dataSet = CDataSet4House.createDataSet(this.getClass().getName());
 		dataSet.bindRegexTable(regexTable);
 		//
 		outputQueue = COutputQueue.getOutputQueue(paras.spideConfig.getConfigFile());

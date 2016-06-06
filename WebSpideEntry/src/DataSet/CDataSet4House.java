@@ -20,12 +20,11 @@ import SpiderBase.CSpideDataStruct;
  * @Create：2016-5-23 下午5:06:24
  * @version V1.0
  */
-
-public class CDataSet {
-
+public class CDataSet4House {
+	
 	public static CSpideDataStruct createDataSet(String job_name) {
 		CSpideDataStruct dataSet = new CSpideDataStruct() {
-
+			
 			@Override
 			public boolean isValidData() {
 				if (!super.isValidData()) return false;
