@@ -1,1 +1,7 @@
-E:\Homework\Ing\WebSpide\.metadata
+.*/
+*.ini
+*.class
+*.log
+.classpath
+.project
+.gitignore
