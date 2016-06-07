@@ -31,9 +31,11 @@ import Log.CLog;
 
 public class WebSpideOutput4House {
 	
+	private final static String clzName             = "WebSpideOutput4House";
+	//
 	private final static Logger logger;
 	static {
-		CLog.setLogger("WebSpideOutput4House");
+		CLog.setLogger(clzName);
 		logger = CLog.getLogger();
 	}
 	//
@@ -164,8 +166,11 @@ public class WebSpideOutput4House {
 					st.setString(31, datajson.query("./style").toString());
 					st.executeUpdate();
 					//
+					st.close();
 					st = null;
+					rs.close();
 					rs = null;
+					stm.close();
 					stm = null;
 				}
 				//
@@ -249,8 +254,8 @@ public class WebSpideOutput4House {
 	
 	public static void main(String[] args) {
 		if (args.length <= 0) {
-			CSpideVersion.printVersion("WebSpideOutput4House");
-			System.out.println("java -jar WebSpideOutput4House.jar <-c inifile>");
+			CSpideVersion.printVersion(clzName);
+			System.out.println("java -jar " + clzName + ".jar <-c inifile>");
 			System.out.println("option:");
 			System.out.println("       -c <ini file> : config file.");
 			System.out.println("       -test         : for test.");
@@ -273,7 +278,7 @@ public class WebSpideOutput4House {
 				stop = true;
 			}
 		}
-		logger.info("Begin [ WebSpideOutput4House ]" + (test ? "(test)" : ""));
+		logger.info("Begin [ " + clzName + " ]" + (test ? "(test)" : ""));
 		//
 		final WebSpideOutput4House output4House;
 		try {
@@ -334,7 +339,7 @@ public class WebSpideOutput4House {
 						}
 					}
 				}
-			}, "Trd-WebSpideOutput4House-main").start();
+			}, "Trd-" + clzName + "-main").start();
 		}
 	}
 }

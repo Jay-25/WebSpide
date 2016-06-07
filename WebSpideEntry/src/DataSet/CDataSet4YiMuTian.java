@@ -43,17 +43,11 @@ public class CDataSet4YiMuTian {
 		// 单价
 		dataSet.defineColumn("unite", "String", false, null);
 		// 均价
-		dataSet.defineColumn("avgPrice", "Double", false, null);
+		dataSet.defineColumn("avgPrice", "Double", false, 0);
 		// 最高价钱
-		dataSet.defineColumn("maxPrice", "Double", true, null);
+		dataSet.defineColumn("maxPrice", "Double", true, 0);
 		// 最低价钱
-		dataSet.defineColumn("minPrice", "Double", true, null);
-		// 信息来源
-		dataSet.defineColumn("url", "String", true, null);
-		// 网址来源
-		dataSet.defineColumn("url_cofrom", "String", true, null);
-		// 网站ID
-		dataSet.defineColumn("web_in_uid", "String", true, null);
+		dataSet.defineColumn("minPrice", "Double", true, 0);
 		//
 		dataSet.clear();
 		return dataSet;

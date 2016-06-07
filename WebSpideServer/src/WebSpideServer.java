@@ -37,7 +37,7 @@ public class WebSpideServer {
 	public static void main(String[] args) {
 		if (args.length <= 0) {
 			CSpideVersion.printVersion("WebSpideServer");
-			System.out.println("java -jar WebSpideServer.jar <-c inifile> [-keep] [-stop]");
+			System.out.println("java -jar WebSpideServer.jar <-c inifile> [option]");
 			System.out.println("option:");
 			System.out.println("       -c <ini file> : config file.");
 			System.out.println("       -keep         : keep on queue.");
