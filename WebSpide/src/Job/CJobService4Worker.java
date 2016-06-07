@@ -36,13 +36,19 @@ public class CJobService4Worker {
 		
 		private void init(long jobN, long qeueuN) {
 			lastQueueLen.set(qeueuN);
-			if (jobN < qeueuN) {
-				jobNum.set(jobN);
-				maxNum.set(jobN);
+			if (qeueuN <= 0) {
+				jobNum.set(1);
+				maxNum.set(1);
 			}
 			else {
-				jobNum.set(qeueuN);
-				maxNum.set(qeueuN);
+				if (jobN < qeueuN) {
+					jobNum.set(jobN);
+					maxNum.set(jobN);
+				}
+				else {
+					jobNum.set(qeueuN);
+					maxNum.set(qeueuN);
+				}
 			}
 		}
 		
