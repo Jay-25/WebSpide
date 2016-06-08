@@ -3,6 +3,7 @@
  * -Xverify:none -Xms1024M -Xmx1024M -Xmn600M -XX:PermSize=96M -XX:MaxPermSize=96M -Xss1M -XX:ParallelGCThreads=2 -XX:+DisableExplicitGC -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+UseAdaptiveSizePolicy -XX:CMSFullGCsBeforeCompaction=5
  * -XX:CMSInitiatingOccupancyFraction=85 -XX:MaxTenuringThreshold=0 -Dcom.sun.management.jmxremote.port=9999 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false
  */
+import java.io.File;
 import java.util.ArrayList;
 
 import org.apache.logging.log4j.Logger;
@@ -21,11 +22,7 @@ import SpiderJob.CSpideJob;
 
 public class WebSpide {
 	
-	private final static Logger logger;
-	static {
-		CLog.setLogger("WebSpideClient");
-		logger = CLog.getLogger();
-	}
+	private static Logger logger;
 	
 	public static void main(String[] args) {
 		if (args.length <= 1) {
@@ -53,6 +50,8 @@ public class WebSpide {
 				once = true;
 			}
 		}
+		CLog.setLogger("WebSpideClient-" + new File(iniFileName).getName().replaceAll("\\..*", ""));
+		logger = CLog.getLogger();
 		//
 		logger.info("Begin [ WebSpideClient ]");
 		//

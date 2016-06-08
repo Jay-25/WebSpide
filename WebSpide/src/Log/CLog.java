@@ -32,7 +32,7 @@ public class CLog {
 	
 	public static void setLogger(String name) {
 		try {
-			String config = System.getProperty("user.dir") + File.separator + name + "Log4j2.xml";
+			String config = System.getProperty("user.dir") + File.separator + name + "-Log4j2.xml";
 			if (!new File(config).exists()) {
 				try {
 					FileWriter writer = new FileWriter(config, false);

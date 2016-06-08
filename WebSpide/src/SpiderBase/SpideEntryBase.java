@@ -38,7 +38,7 @@ public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 	}
 	
 	private final _JobCounter jobCounter = new _JobCounter();
-	private boolean           isStop     = false;
+	protected boolean         isStop     = false;
 	
 	protected class Paras {
 		
