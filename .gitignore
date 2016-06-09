@@ -5,3 +5,5 @@
 .classpath
 .project
 .gitignore
+*Log4j2.xml
+sjob/
