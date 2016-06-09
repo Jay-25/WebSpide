@@ -72,6 +72,9 @@ public class CJobService4Server {
 			@Override
 			public void run() {
 				logger.info("--- Server Running ---");
+				if (isOnceModel && jobQueue.length(CJobQueue.QUEUE_INDEX_JOB) > 0) {
+					return;
+				}
 				Jedis jedis = jobQueue.getJedis(CJobQueue.MDB_INDEX_SERVER);
 				jedis.set(key_Server_Running, "1");
 				FilenameFilter filenameFilter = new FilenameFilter() {

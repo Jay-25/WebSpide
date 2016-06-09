@@ -3,6 +3,8 @@
  * -Xverify:none -Xms1024M -Xmx1024M -Xmn600M -XX:PermSize=96M -XX:MaxPermSize=96M -Xss1M -XX:ParallelGCThreads=2 -XX:+DisableExplicitGC -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+UseAdaptiveSizePolicy -XX:CMSFullGCsBeforeCompaction=5
  * -XX:CMSInitiatingOccupancyFraction=85 -XX:MaxTenuringThreshold=0 -Dcom.sun.management.jmxremote.port=9999 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false
  */
+import java.io.File;
+
 import org.apache.logging.log4j.Logger;
 
 import Job.CJobQueue;
@@ -23,11 +25,7 @@ import Log.CLog;
  */
 public class WebSpideServer {
 	
-	private final static Logger logger;
-	static {
-		CLog.setLogger("WebSpideServer");
-		logger = CLog.getLogger();
-	}
+	private static Logger logger;
 	
 	/**
 	 * @Title: main
@@ -70,6 +68,9 @@ public class WebSpideServer {
 				once = true;
 			}
 		}
+		CLog.setLogger("WebSpideServer-" + new File(iniFileName).getName().replaceAll("\\..*", ""));
+		logger = CLog.getLogger();
+		//
 		logger.info("WebSpideServer" + (keep ? "(keep)" : "") + (force ? "(force)" : ""));
 		//
 		CJobQueueConfig jobQueueConfig = new CJobQueueConfig(iniFileName);

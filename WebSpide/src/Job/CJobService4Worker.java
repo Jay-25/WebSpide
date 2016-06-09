@@ -43,17 +43,18 @@ public class CJobService4Worker {
 			
 			@Override
 			public void run() {
+				boolean waiting4Beg = false;
 				while (true) {
 					try {
 						while (queue.length(CJobQueue.QUEUE_INDEX_JOB) <= 0 || !jobCounter.jobIsRunable()) {
 							sleep(50);
+							if (waiting4Beg && once && queue.length(CJobQueue.QUEUE_INDEX_JOB) <= 0) return;
 						}
+						waiting4Beg = true;
 						jobCounter.update(queue.length(CJobQueue.QUEUE_INDEX_JOB));
 						//
 						jobCounter.decrement();
-						runConsole(once);
-						//
-						if (once) break;
+						runConsole();
 					}
 					catch (Exception e) {
 						logger.warn(e.getMessage(), e);
@@ -63,7 +64,7 @@ public class CJobService4Worker {
 		}, "Trd-" + getClass().getName() + "-run").start();
 	}
 	
-	private void runConsole(final boolean once) {
+	private void runConsole() {
 		new Thread(new Runnable() {
 			
 			@Override
@@ -82,7 +83,7 @@ public class CJobService4Worker {
 					else {
 						jedisRunning.set(jobString, "1");
 						try {
-							if (worker.execute(jobString) && !once) {
+							if (worker.execute(jobString)) {
 								queue.addJob(CJobQueue.QUEUE_INDEX_RESULT, jobString);
 								logger.info("Job SUCCESS and return QUEUE_INDEX_RESULT : " + jobString);
 							}
