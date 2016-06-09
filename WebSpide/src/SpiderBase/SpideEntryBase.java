@@ -3,8 +3,6 @@ package SpiderBase;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.concurrent.Callable;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
 
 import net.sf.json.JSONObject;
 
@@ -12,7 +10,9 @@ import org.apache.logging.log4j.Logger;
 
 import redis.clients.jedis.Jedis;
 import Extract.Json.CJson;
+import Job.CJobCounter;
 import Job.CJobService4WorkerConfig;
+import Job.CJobThread;
 import Job.IJobConsole;
 import Log.CLog;
 import PageParser.CPageParse;
@@ -32,12 +32,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
  */
 public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 	
-	private class _JobCounter {
-		
-		int jobNum = 0;
-	}
-	
-	private final _JobCounter jobCounter = new _JobCounter();
+	private final CJobCounter jobCounter = new CJobCounter();
 	protected boolean         isStop     = false;
 	
 	protected class Paras {
@@ -79,7 +74,9 @@ public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 		final String key = paras.jobname + "@" + paras.url;
 		//
 		CAdvanceSpideExplorer explorer = new CAdvanceSpideExplorer(BrowserVersion.CHROME);
-		HtmlPage page = explorer.getPage(paras.url, paras.spideConfig.getAttempt(), paras.spideConfig.getAttemptMS());
+		HtmlPage page = explorer
+		                .getPage(paras.url, paras.spideConfig.getAttempt(), paras.spideConfig
+		                                .getAttemptMS());
 		//
 		if (page == null) {
 			explorer.close();
@@ -113,7 +110,8 @@ public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 				else {
 					paras.url = jurl;
 					logger.info("Jump Page " + pageNum + " [" + key + "] -> [" + paras.url + "]");
-					page = explorer.getPage(paras.url, paras.spideConfig.getAttempt(), paras.spideConfig.getAttemptMS());
+					page = explorer.getPage(paras.url, paras.spideConfig.getAttempt(), paras.spideConfig
+					                .getAttemptMS());
 				}
 			}
 		}
@@ -133,92 +131,55 @@ public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 			links = setLinks(finalpage, finalpageNum);
 			logger.info(page.getUrl().toString() + " sub links : " + links.size());
 			if (links != null && links.size() > 0) {
-				if (links.size() < threadNum) threadNum = links.size();
-				jobCounter.jobNum = threadNum;
+				jobCounter.init(links.size(), threadNum);
 				for (final Object linkItem : links) {
 					if (linkItem == null) continue;
-					while (jobCounter.jobNum <= 0 && !isStop) {
+					while (!jobCounter.jobIsRunable() && !isStop) {
 						sleep(50);
 					}
 					if (isStop) break;
 					//
-					jobCounter.jobNum--;
-					new Thread(new Runnable() {
+					jobCounter.decrement();
+					new CJobThread(new Callable<Object>() {
 						
 						@Override
-						public void run() {
-							int retry = paras.spideConfig.getAttempt();
-							while (retry-- > 0) {
-								FutureTask<Object> task = new FutureTask<Object>(new Callable<Object>() {
-									
-									@Override
-									public Object call() throws Exception {
-										try {
-											parsePage(finalpage, linkItem, finalpageNum);
-										}
-										catch (Exception e) {
-											logger.error(e.getMessage(), e);
-										}
-										return null;
-									}
-								});
-								try {
-									new Thread(task, "Trd-" + getClass().getName() + "-run.FutureTask").start();
-									task.get(paras.spideConfig.getTimeOut(), TimeUnit.SECONDS);
-									break;
-								}
-								catch (Exception e) {
-									logger.warn("ParsePage Again. " + e.getMessage(), e);
-									sleep(3 * 1000);
-								}
-								task = null;
+						public Object call() throws Exception {
+							try {
+								parsePage(finalpage, linkItem, finalpageNum);
 							}
-							jobCounter.jobNum++;
+							catch (Exception e) {
+								logger.error(e.getMessage(), e);
+							}
+							jobCounter.increment();
+							return null;
 						}
-					}, "Trd-" + getClass().getName() + "-run").start();
+					}, "Trd-" + getClass().getName() + "-run.FutureTask", paras.spideConfig.getAttempt(), 3 * 1000, paras.spideConfig
+					                .getTimeOut()).start();
 				}
 				links.clear();
 				links = null;
-				while (jobCounter.jobNum < threadNum && !isStop) {
+				while (jobCounter.getJobNum() < threadNum && !isStop) {
 					sleep(50);
 				}
 			}
 			else {
-				jobCounter.jobNum = 0;
-				new Thread(new Runnable() {
+				jobCounter.resetJobNum();
+				new CJobThread(new Callable<Object>() {
 					
 					@Override
-					public void run() {
-						int retry = paras.spideConfig.getAttempt();
-						while (retry-- > 0) {
-							FutureTask<Object> task = new FutureTask<Object>(new Callable<Object>() {
-								
-								@Override
-								public Object call() throws Exception {
-									try {
-										parsePage(finalpage, null, finalpageNum);
-									}
-									catch (Exception e) {
-										logger.error(e.getMessage(), e);
-									}
-									return null;
-								}
-							});
-							try {
-								new Thread(task, "Trd-" + getClass().getName() + "-run.FutureTask").start();
-								task.get(paras.spideConfig.getTimeOut(), TimeUnit.SECONDS);
-								break;
-							}
-							catch (Exception e) {
-								logger.warn("ParsePage Again. " + e.getMessage(), e);
-								sleep(3 * 1000);
-							}
-							task = null;
+					public Object call() throws Exception {
+						try {
+							parsePage(finalpage, null, finalpageNum);
 						}
-						jobCounter.jobNum++;
+						catch (Exception e) {
+							logger.error(e.getMessage(), e);
+						}
+						jobCounter.increment();
+						return null;
 					}
-				}, "Trd-" + getClass().getName() + "-run.default").start();
-				while (jobCounter.jobNum < 1 && !isStop) {
+				}, "Trd-" + getClass().getName() + "-run.default", paras.spideConfig.getAttempt(), 3 * 1000, paras.spideConfig
+				                .getTimeOut()).start();
+				while (!jobCounter.jobIsRunable() && !isStop) {
 					sleep(50);
 				}
 			}

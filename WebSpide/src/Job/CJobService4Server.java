@@ -15,7 +15,9 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -42,6 +44,7 @@ public class CJobService4Server {
 	private CJobQueue                jobQueue           = null;
 	private CJobService4ServerConfig config             = null;
 	private boolean                  isOnceModel        = false;
+	SimpleDateFormat                 dateFormat         = new SimpleDateFormat("yyyy-M-dd HH:mm:ss");
 	
 	public CJobService4Server(CJobQueue jobQueue, CJobService4ServerConfig config) {
 		this.jobQueue = jobQueue;
@@ -84,7 +87,10 @@ public class CJobService4Server {
 					}
 					if (!jedis.get(key_Server_Running).equals("1")) return;
 					//
-					logger.info("--- Job Loading ---");
+					Date now = new Date();
+					String timestamp = dateFormat.format(now);
+					now = null;
+					logger.info("--- Job Loading <" + timestamp + "> ---");
 					ArrayList<String> jobList = new ArrayList<String>();
 					if (jobQueue.length(CJobQueue.QUEUE_INDEX_JOB) <= 0) {
 						File dir = new File(config.getJobFilePath());

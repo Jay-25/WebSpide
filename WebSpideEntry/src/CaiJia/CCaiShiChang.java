@@ -7,14 +7,14 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Callable;
 
 import redis.clients.jedis.Jedis;
 import DataSet.CDataSet4CaiShiChang;
 import Extract.Json.CJson;
+import Job.CJobCounter;
 import Job.CJobQueue;
+import Job.CJobThread;
 import OutputQueue.COutputQueue;
 import SpiderBase.CSpideDataStruct;
 import SpiderBase.SpideEntryBase;
@@ -79,11 +79,12 @@ public class CCaiShiChang extends SpideEntryBase {
 	//
 	private class CGetPrice extends CJson {
 		
-		private final ExecutorService jobPool = Executors.newFixedThreadPool(setThreadNum(null, paras.spideParas));
+		private final CJobCounter jobCounter = new CJobCounter();
 		
 		public CGetPrice(String url, String encode) throws UnsupportedEncodingException,
 		                IOException {
 			super(new URL(url), encode);
+			jobCounter.init(setThreadNum(null, paras.spideParas));
 		}
 		
 		@Override
@@ -118,11 +119,11 @@ public class CCaiShiChang extends SpideEntryBase {
 					outputQueue.addJob(COutputQueue.QUEUE_INDEX_OUTPUT, dataJson);
 					dataSet.print();
 					//
-					jobPool.execute(new Runnable() {
+					jobCounter.decrement();
+					new CJobThread(new Callable<Object>() {
 						
 						@Override
-						public void run() {
-							sleep(200);
+						public Object call() throws Exception {
 							CGetNutrition getNutrition = null;
 							try {
 								getNutrition = new CGetNutrition("http://app.95e.com/vm/getMaterial2.aspx?name=" + URLEncoder
@@ -133,8 +134,16 @@ public class CCaiShiChang extends SpideEntryBase {
 								e.printStackTrace();
 							}
 							getNutrition = null;
+							jobCounter.increment();
+							return null;
 						}
-					});
+					}, "Trd-" + getClass().getName() + "-CGetPrice", paras.spideConfig.getTimeOut())
+					                .start();
+					//
+					while (!jobCounter.jobIsRunable() && !isStop) {
+						sleep(50);
+					}
+					if (isStop) break;
 				}
 			}
 		}
@@ -143,11 +152,12 @@ public class CCaiShiChang extends SpideEntryBase {
 	//
 	private class CGetDistrict extends CJson {
 		
-		private ExecutorService jobPool = Executors.newFixedThreadPool(setThreadNum(null, paras.spideParas));
+		private final CJobCounter jobCounter = new CJobCounter();
 		
 		public CGetDistrict(String url, String encode) throws UnsupportedEncodingException,
 		                IOException {
 			super(new URL(url), encode);
+			jobCounter.init(setThreadNum(null, paras.spideParas));
 		}
 		
 		@SuppressWarnings("rawtypes")
@@ -178,11 +188,11 @@ public class CCaiShiChang extends SpideEntryBase {
 						outputQueue.addJob(COutputQueue.QUEUE_INDEX_OUTPUT, dataJson);
 						dataSet.print();
 						//
-						jobPool.execute(new Runnable() {
+						jobCounter.decrement();
+						new CJobThread(new Callable<Object>() {
 							
 							@Override
-							public void run() {
-								sleep(200);
+							public Object call() throws Exception {
 								CGetPrice getPrice = null;
 								try {
 									getPrice = new CGetPrice("http://app.95e.com/vm/getPrice2.aspx?m=" + URLEncoder
@@ -190,21 +200,22 @@ public class CCaiShiChang extends SpideEntryBase {
 									getPrice.process();
 								}
 								catch (Exception e) {
-									e.printStackTrace();
+									logger.error(e.getMessage(), e);
 								}
 								getPrice = null;
+								jobCounter.increment();
+								return null;
 							}
-						});
+						}, "Trd-" + getClass().getName() + "-CGetDistrict", paras.spideConfig.getTimeOut())
+						                .start();
+						//
+						while (!jobCounter.jobIsRunable() && !isStop) {
+							sleep(50);
+						}
+						if (isStop) break;
 					}
 				}
 			}
-			jobPool.shutdown();
-			try {
-				jobPool.awaitTermination(Integer.MAX_VALUE, TimeUnit.SECONDS);
-			}
-			catch (InterruptedException e) {
-			}
-			jobPool = null;
 		}
 	}
 	

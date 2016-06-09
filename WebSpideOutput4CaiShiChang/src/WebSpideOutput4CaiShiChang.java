@@ -254,13 +254,18 @@ public class WebSpideOutput4CaiShiChang {
 				
 				@Override
 				public void run() {
+					String timestamp = null;
 					SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-M-dd HH:mm:ss");
 					long numOk = 0;
 					long numExit = 0;
 					long numError = 0;
+					long showCounter = 0;
 					while (true) {
 						while (outputQueue.length(CJobQueue.QUEUE_INDEX_JOB) <= 0) {
 							try {
+								if (!isPrint && ++showCounter % 100 == 0) {
+									System.out.println("--- < " + timestamp + ", OK: " + numOk + ", Exist: " + numExit + ", Error: " + numError + " > ---");
+								}
 								Thread.sleep(50);
 							}
 							catch (InterruptedException e) {
@@ -284,7 +289,7 @@ public class WebSpideOutput4CaiShiChang {
 								output4House.saveFile(strJson);
 							}
 							Date now = new Date();
-							String timestamp = dateFormat.format(now);
+							timestamp = dateFormat.format(now);
 							now = null;
 							if (isPrint) {
 								System.out.println("--- < " + timestamp + ", OK: " + numOk + ", Exist: " + numExit + ", Error: " + numError + " > ---");

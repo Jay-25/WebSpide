@@ -8,8 +8,6 @@
  */
 package Job;
 
-import java.util.concurrent.atomic.AtomicLong;
-
 import org.apache.logging.log4j.Logger;
 
 import redis.clients.jedis.Jedis;
@@ -26,57 +24,8 @@ import Log.CLog;
  */
 public class CJobService4Worker {
 	
-	private static Logger logger = CLog.getLogger();
-	
-	private class _JobCounter {
-		
-		private final AtomicLong maxNum       = new AtomicLong(0);
-		private final AtomicLong jobNum       = new AtomicLong(0);
-		private final AtomicLong lastQueueLen = new AtomicLong(0);
-		
-		private void init(long jobN, long qeueuN) {
-			lastQueueLen.set(qeueuN);
-			if (qeueuN <= 0) {
-				jobNum.set(1);
-				maxNum.set(1);
-			}
-			else {
-				if (jobN < qeueuN) {
-					jobNum.set(jobN);
-					maxNum.set(jobN);
-				}
-				else {
-					jobNum.set(qeueuN);
-					maxNum.set(qeueuN);
-				}
-			}
-		}
-		
-		private void update(long qeueuN) {
-			if (lastQueueLen.get() != qeueuN) {
-				lastQueueLen.set(qeueuN);
-				if (lastQueueLen.get() < maxNum.get()) {
-					maxNum.set(lastQueueLen.get());
-				}
-			}
-		}
-		
-		private boolean jobIsRunable() {
-			return jobNum.get() > 0;
-		}
-		
-		private void decrement() {
-			if (jobNum.get() > 0) jobNum.decrementAndGet();
-		}
-		
-		private void increment() {
-			if (jobNum.get() < maxNum.get()) {
-				jobNum.incrementAndGet();
-			}
-		}
-	}
-	
-	private final _JobCounter        jobCounter = new _JobCounter();
+	private static Logger            logger     = CLog.getLogger();
+	private final CJobCounter        jobCounter = new CJobCounter();
 	private CJobQueue                queue      = null;
 	private IJobWorker               worker     = null;
 	private CJobService4WorkerConfig config     = null;
@@ -122,7 +71,7 @@ public class CJobService4Worker {
 				try {
 					String jobString = queue.getJob(CJobQueue.QUEUE_INDEX_JOB);
 					if (jobString == null) {
-						jobCounter.jobNum.incrementAndGet();
+						jobCounter.increment();
 						return;
 					}
 					//
