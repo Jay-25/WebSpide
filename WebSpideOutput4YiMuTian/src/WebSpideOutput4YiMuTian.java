@@ -33,6 +33,8 @@ public class WebSpideOutput4YiMuTian {
 		logger = CLog.getLogger();
 	}
 	//
+	private static boolean      isPrint             = true;
+	//
 	public final static int     QUEUE_INDEX_OUTPUT  = 0;
 	public final static int     MDB_INDEX_DUPLICATE = 1;
 	
@@ -103,13 +105,14 @@ public class WebSpideOutput4YiMuTian {
 	}
 	
 	private String decode(String v1, String v2) {
-		if (v1 == null || v1.length() <= 0) return v2;
+		if (v1 == null || v1.length() <= 0 || v1.equals("null")) return v2;
 		return v1;
 	}
 	
 	public Status insert(final CJobQueue outputQueue, String strJson, boolean test) {
 		CJson datajson = new CJson(strJson);
 		datajson.process();
+		if (!datajson.isValid()) return Status.STATUS_ERROR;
 		int retry = 5;
 		while (retry > 0) {
 			try {
@@ -132,7 +135,9 @@ public class WebSpideOutput4YiMuTian {
 					st = null;
 				}
 				//
-				System.out.println(datajson.getJson());
+				if (isPrint) {
+					System.out.println(datajson.getJson());
+				}
 				datajson = null;
 				//
 				return Status.STATUS_OK;
@@ -173,6 +178,7 @@ public class WebSpideOutput4YiMuTian {
 			System.out.println("       -c <ini file> : config file.");
 			System.out.println("       -test         : for test.");
 			System.out.println("       -stop         : stop server.");
+			System.out.println("       -quiet        : no print.");
 			return;
 		}
 		//
@@ -189,6 +195,9 @@ public class WebSpideOutput4YiMuTian {
 			}
 			else if (args[i].equals("-stop")) {
 				stop = true;
+			}
+			else if (args[i].equals("-quiet")) {
+				isPrint = false;
 			}
 		}
 		logger.info("Begin [ " + clzName + " ]" + (test ? "(test)" : ""));
@@ -228,7 +237,8 @@ public class WebSpideOutput4YiMuTian {
 						//
 						try {
 							WebSpideOutput4YiMuTian.Status status = WebSpideOutput4YiMuTian.Status.STATUS_OK;
-							String strJson = outputQueue.getJob(WebSpideOutput4YiMuTian.QUEUE_INDEX_OUTPUT);
+							String strJson = outputQueue
+							                .getJob(WebSpideOutput4YiMuTian.QUEUE_INDEX_OUTPUT);
 							if (strJson == null) continue;
 							status = output4House.insert(outputQueue, strJson, finalTest);
 							if (status == WebSpideOutput4YiMuTian.Status.STATUS_OK) {
@@ -244,7 +254,9 @@ public class WebSpideOutput4YiMuTian {
 							Date now = new Date();
 							String timestamp = dateFormat.format(now);
 							now = null;
-							System.out.println("--- < " + timestamp + ", OK: " + numOk + ", Exist: " + numExit + ", Error: " + numError + " > ---");
+							if (isPrint) {
+								System.out.println("--- < " + timestamp + ", OK: " + numOk + ", Exist: " + numExit + ", Error: " + numError + " > ---");
+							}
 						}
 						catch (Exception e) {
 							logger.warn(e.getMessage(), e);

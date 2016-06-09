@@ -19,6 +19,7 @@ import java.util.regex.Pattern;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import net.sf.json.JsonConfig;
+import net.sf.json.util.CycleDetectionStrategy;
 
 public class CJson {
 	
@@ -32,6 +33,7 @@ public class CJson {
 		private static final long serialVersionUID = 5945711917334569751L;
 	}
 	
+	private boolean       valid   = false;
 	private String        json    = "";
 	private JSONObject    jobj    = null;
 	private final JObject jObject = new JObject();
@@ -96,10 +98,15 @@ public class CJson {
 		super.finalize();
 	}
 	
+	public boolean isValid() {
+		return this.valid;
+	}
+	
 	public static String unescapeUnicode(String str) {
 		Matcher m = Pattern.compile("\\\\u([0-9a-fA-F]{4})").matcher(str);
 		while (m.find()) {
-			str = str.replaceFirst("\\\\u([0-9a-fA-F]{4})", new StringBuffer().append((char) Integer.parseInt(m.group(1), 16)).toString());
+			str = str.replaceFirst("\\\\u([0-9a-fA-F]{4})", new StringBuffer()
+			                .append((char) Integer.parseInt(m.group(1), 16)).toString());
 		}
 		return str;
 	}
@@ -119,15 +126,24 @@ public class CJson {
 	
 	@SuppressWarnings("rawtypes")
 	public void process() {
+		valid = false;
 		Map map = new HashMap();
 		JsonConfig jc = new JsonConfig();
-		jc.setClassMap(map);
-		jc.setRootClass(Map.class);
-		jc.setArrayMode(JsonConfig.MODE_LIST);
-		jobj = JSONObject.fromObject(json, jc);
-		//
-		toObject(jobj, jObject);
-		doObject(jObject);
+		try {
+			jc.setIgnoreDefaultExcludes(false);
+			jc.setCycleDetectionStrategy(CycleDetectionStrategy.LENIENT);
+			jc.setClassMap(map);
+			jc.setRootClass(Map.class);
+			jc.setArrayMode(JsonConfig.MODE_LIST);
+			jobj = JSONObject.fromObject(json, jc);
+			//
+			toObject(jobj, jObject);
+			valid = true;
+			doObject(jObject);
+		}
+		catch (Exception e) {
+			valid = false;
+		}
 		//
 		jc = null;
 		map.clear();
@@ -171,7 +187,8 @@ public class CJson {
 	private JObject decodeJSONObject(JSONObject json, JObject obj) {
 		String key;
 		Object o;
-		for (Iterator<String> keys = json.keys(); keys.hasNext();) {
+		Iterator<String> keys = json.keys();
+		while (keys.hasNext()) {
 			key = keys.next();
 			o = json.get(key);
 			if (o instanceof JSONObject) {

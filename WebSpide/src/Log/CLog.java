@@ -40,7 +40,8 @@ public class CLog {
 					                "<!-- -Dlog4j.configurationFile=log4j2.xml -->\n" +
 					                "<Configuration status=\"OFF\">\n" +
 					                "	<properties>\n" +
-					                "		<property name=\"LOG_HOME\">" + System.getProperty("user.dir") + File.separator + "log</property>\n" +
+					                "		<property name=\"LOG_HOME\">" + System
+					                .getProperty("user.dir") + File.separator + "log</property>\n" +
 					                "	</properties>\n" +
 					                "	<Appenders>\n" +
 					                "		<Console name=\"Console\" target=\"SYSTEM_OUT\">\n" +

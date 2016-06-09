@@ -2,12 +2,15 @@ package SpiderBase;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import net.sf.json.JSONObject;
+import net.sf.json.JsonConfig;
+import net.sf.json.util.CycleDetectionStrategy;
 
 import org.apache.logging.log4j.Logger;
 
@@ -52,8 +55,22 @@ public class CSpideDataStruct {
 		this.regexTable = regexTable;
 	}
 	
+	@SuppressWarnings("rawtypes")
 	public JSONObject toJson() {
-		return JSONObject.fromObject(dataSet);
+		Map map = new HashMap();
+		JsonConfig jc = new JsonConfig();
+		jc.setIgnoreDefaultExcludes(false);
+		jc.setCycleDetectionStrategy(CycleDetectionStrategy.LENIENT);
+		jc.setClassMap(map);
+		jc.setRootClass(Map.class);
+		jc.setArrayMode(JsonConfig.MODE_LIST);
+		JSONObject json = JSONObject.fromObject(dataSet, jc);
+		//
+		jc = null;
+		map.clear();
+		map = null;
+		//
+		return json;
 	}
 	
 	public boolean isNull(Object obj) {
@@ -87,7 +104,7 @@ public class CSpideDataStruct {
 	}
 	
 	public void defineColumn(String key, String type, Boolean isNull, Object defaultValue) {
-		dataSet.put(key, null);
+		dataSet.put(key, defaultValue);
 		dataIsNullSet.put(key, isNull);
 		dataTypeSet.put(key, type);
 		dataDefaultSet.put(key, defaultValue);

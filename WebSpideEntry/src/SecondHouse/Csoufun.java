@@ -127,7 +127,9 @@ public class Csoufun extends SpideEntryBase {
 		String curUrl = (String) linkItem;
 		//
 		CAdvanceSpideExplorer explorer = new CAdvanceSpideExplorer(BrowserVersion.CHROME);
-		HtmlPage curPage = explorer.getPage(curUrl, paras.spideConfig.getAttempt(), paras.spideConfig.getAttemptMS());
+		HtmlPage curPage = explorer
+		                .getPage(curUrl, paras.spideConfig.getAttempt(), paras.spideConfig
+		                                .getAttemptMS());
 		explorer.close();
 		explorer = null;
 		//
@@ -166,7 +168,8 @@ public class Csoufun extends SpideEntryBase {
 		// 站内标识
 		regexTable.set("web_in_uid", new CRegex("信息编号[:\\s]*(\\w+)", 1), new CRegex("房源编号[:\\s]*(\\w+)", 1));
 		// 发布时间
-		regexTable.set("release_time", CRegexLib.dateTimeRegex("", ""), CRegexLib.dateTimeOffsetRegex("", ""));
+		regexTable.set("release_time", CRegexLib.dateTimeRegex("", ""), CRegexLib
+		                .dateTimeOffsetRegex("", ""));
 		// 总价
 		regexTable.set("price", new CRegex("总\\s*价[:\\s]*([0-9.]+)\\s*万", 1));
 		// 单价
@@ -192,7 +195,8 @@ public class Csoufun extends SpideEntryBase {
 		// 年代
 		regexTable.set("build_time_year", new CRegex("([0-9]*)年建", 1), new CRegex("建?筑?造?年\\s*代[:\\s]*([0-9]*)", 1));
 		// 朝向
-		regexTable.set("build_face", CRegexLib.houseFaceRegex("房?间?朝\\s*向[:\\s]*", ""), CRegexLib.houseFaceRegex("朝\\s*", ""));
+		regexTable.set("build_face", CRegexLib.houseFaceRegex("房?间?朝\\s*向[:\\s]*", ""), CRegexLib
+		                .houseFaceRegex("朝\\s*", ""));
 		// 楼层
 		regexTable.set("build_layer", new CRegex("楼层[:\\s]*(\\d+)/\\d+", 1), new CRegex("楼层[:\\s]*(\\w+)层", 1), new CRegex("第(\\d+)层", 1));
 		// 总楼层
@@ -200,7 +204,8 @@ public class Csoufun extends SpideEntryBase {
 		// 地址-小区
 		regexTable.set("address_city", new CRegex("小区[:\\s]*([\u0000-\uffff]+?)\\s", 1), new CRegex("\\s*([\u0000-\uffff]+?)小区", 1));
 		// 地址
-		regexTable.set("address", CRegexLib.addressRegex("地\\s*址[:\\s]*", ""), CRegexLib.addressRegex("", ""));
+		regexTable.set("address", CRegexLib.addressRegex("地\\s*址[:\\s]*", ""), CRegexLib
+		                .addressRegex("", ""));
 		// 开发商
 		regexTable.set("develop_company", new CRegex("开\\s*发\\s*商[:\\s]*(\\w+)\\s", 1));
 		// 物业费
@@ -218,12 +223,16 @@ public class Csoufun extends SpideEntryBase {
 	}
 	
 	private void autoSet(CSpideDataStruct dataSet, String... args) {
-		if (dataSet.isNull(dataSet.getData("release_time"))) dataSet.setValue("release_time", CDateTime.getCurrentTime("yyyy-MM-dd"));
-		dataSet.setValue("address", (paras.spideParas.get(1) + "," + dataSet.getData("build_name", "") + "," + dataSet.getData("address_city", "") + "," + dataSet.getData("address", ""))
+		if (dataSet.isNull(dataSet.getData("release_time"))) dataSet
+		                .setValue("release_time", CDateTime.getCurrentTime("yyyy-MM-dd"));
+		dataSet.setValue("address", (paras.spideParas.get(1) + "," + dataSet
+		                .getData("build_name", "") + "," + dataSet.getData("address_city", "") + "," + dataSet
+		                .getData("address", ""))
 		                .replaceAll("(\\pP)\\pP*", "$1"));
 		//
 		dataSet.setValue("style", "BaiDu");
-		CDataCoordinate coordinate = CGeography.getInstance().getCoordinate_Baidu((String) dataSet.getData("address"));
+		CDataCoordinate coordinate = CGeography.getInstance()
+		                .getCoordinate_Baidu((String) dataSet.getData("address"));
 		if (coordinate != null) {
 			dataSet.setValue("longitude", coordinate.getLongitude());
 			dataSet.setValue("latitude", coordinate.getLatitude());
