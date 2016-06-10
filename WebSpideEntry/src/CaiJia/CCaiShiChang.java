@@ -9,7 +9,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-import redis.clients.jedis.Jedis;
 import DataSet.CDataSet4CaiShiChang;
 import Extract.Json.CJson;
 import Job.CJobCounter;
@@ -69,7 +68,7 @@ public class CCaiShiChang extends SpideEntryBase {
 					dataSet.setValue("per", per.trim());
 					//
 					String dataJson = dataSet.toJson().toString();
-					outputQueue.addJob(COutputQueue.QUEUE_INDEX_OUTPUT, dataJson);
+					outputQueue.addData(COutputQueue.QUEUE_INDEX_OUTPUT, dataJson);
 					dataSet.print();
 				}
 			}
@@ -116,7 +115,7 @@ public class CCaiShiChang extends SpideEntryBase {
 					dataSet.setValue("average", average ? "1" : "0");
 					//
 					String dataJson = dataSet.toJson().toString();
-					outputQueue.addJob(COutputQueue.QUEUE_INDEX_OUTPUT, dataJson);
+					outputQueue.addData(COutputQueue.QUEUE_INDEX_OUTPUT, dataJson);
 					dataSet.print();
 					//
 					jobCounter.decrement();
@@ -185,7 +184,7 @@ public class CCaiShiChang extends SpideEntryBase {
 						dataSet.setValue("updated", updated ? "1" : "0");
 						//
 						String dataJson = dataSet.toJson().toString();
-						outputQueue.addJob(COutputQueue.QUEUE_INDEX_OUTPUT, dataJson);
+						outputQueue.addData(COutputQueue.QUEUE_INDEX_OUTPUT, dataJson);
 						dataSet.print();
 						//
 						jobCounter.decrement();
@@ -235,9 +234,7 @@ public class CCaiShiChang extends SpideEntryBase {
 		dataSet = CDataSet4CaiShiChang.createDataSet(this.getClass().getName());
 		//
 		outputQueue = COutputQueue.getOutputQueue(paras.spideConfig.getConfigFile());
-		Jedis jedis = outputQueue.getJedis(COutputQueue.MDB_INDEX_DUPLICATE);
-		jedis.del(paras.url);
-		jedis.close();
+		outputQueue.jedisDel(COutputQueue.MDB_INDEX_DUPLICATE, paras.url);
 	}
 	
 	@Override

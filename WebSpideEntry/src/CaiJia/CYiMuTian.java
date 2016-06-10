@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import redis.clients.jedis.Jedis;
 import DataSet.CDataSet4YiMuTian;
 import Extract.Reduce.CHtmlReduce;
 import Extract.Reduce.CHtmlTrim;
@@ -60,9 +59,7 @@ public class CYiMuTian extends SpideEntryBase {
 		dataSet.bindRegexTable(regexTable);
 		//
 		outputQueue = COutputQueue.getOutputQueue(paras.spideConfig.getConfigFile());
-		Jedis jedis = outputQueue.getJedis(COutputQueue.MDB_INDEX_DUPLICATE);
-		jedis.del(paras.url);
-		jedis.close();
+		outputQueue.jedisDel(COutputQueue.MDB_INDEX_DUPLICATE, paras.url);
 	}
 	
 	@Override
@@ -102,7 +99,8 @@ public class CYiMuTian extends SpideEntryBase {
 		CAdvanceSpideExplorer explorer = new CAdvanceSpideExplorer(BrowserVersion.CHROME);
 		HtmlPage newsPage = explorer.getPage((String) linkItem);
 		CHtmlTrim.removeHidenElement(newsPage);
-		List<HtmlElement> bds = newsPage.getDocumentElement().getElementsByAttribute("li", "class", "bd");
+		List<HtmlElement> bds = newsPage.getDocumentElement()
+		                .getElementsByAttribute("li", "class", "bd");
 		for (HtmlElement bd : bds) {
 			String html = CHtmlTrim.replaceDBC2SBC(htmlReduce.reduce(bd.asXml()));
 			html = CHtmlTrim.trim(CHtmlTrim.removeHtmlTag(html));
@@ -114,7 +112,7 @@ public class CYiMuTian extends SpideEntryBase {
 			//
 			if (dataSet.isValidData()) {
 				String dataJson = dataSet.toJson().toString();
-				outputQueue.addJob(COutputQueue.QUEUE_INDEX_OUTPUT, dataJson);
+				outputQueue.addData(COutputQueue.QUEUE_INDEX_OUTPUT, dataJson);
 			}
 			else {
 				logger.warn("Parse Fail [" + (String) linkItem + "]");

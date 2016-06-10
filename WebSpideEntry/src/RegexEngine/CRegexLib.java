@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import Algorithm.Math.CExpression;
 import Extract.RegexEngine.CRegex;
@@ -32,7 +31,8 @@ public class CRegexLib {
 		regexs.add(new CRegex(prefix + "(20\\d{2}|\\d{2})[年/-]{1}(0?\\d{1}|1[0-2])[月/-]{1}([0-2]?\\d{1}|30|31)[日号]?[  	]*([0-1]?\\d{1}|2[0-3])[时点:]([0-5]?\\d{1})[分]?" + suffix, 1, 2, 3, 4, 5)
 		                .setFormat("${1}-${2}-${3} ${4}:${5}:00"));
 		// 2014年10月8日
-		regexs.add(new CRegex(prefix + "(20\\d{2}|\\d{2})[年/-]{1}(0?\\d{1}|1[0-2])[月/-]{1}([0-2]?\\d{1}|30|31)[日号]?" + suffix, 1, 2, 3).setFormat("${1}-${2}-${3} 00:00:00"));
+		regexs.add(new CRegex(prefix + "(20\\d{2}|\\d{2})[年/-]{1}(0?\\d{1}|1[0-2])[月/-]{1}([0-2]?\\d{1}|30|31)[日号]?" + suffix, 1, 2, 3)
+		                .setFormat("${1}-${2}-${3} 00:00:00"));
 		// 10月8日17:15:45
 		regexs.add(new CRegex(prefix + (prefix.length() == 0 ? "^" : "") + "{1}(0?\\d{1}|1[0-2])[月/-]{1}([0-2]?\\d{1}|30|31)[日号]?[  	]*([0-1]?\\d{1}|2[0-3])[时点:]([0-5]?\\d{1})[分:]([0-5]?\\d{1})[秒刻]?" + suffix, 1, 2, 3, 4, 5)
 		                .setFormat((nowDate.getYear() + 1900) + "-${1}-${2} ${3}:${4}:${5}"));
@@ -44,14 +44,18 @@ public class CRegexLib {
 		regexs.add(new CRegex(prefix + "[^0-9]+{1}(0?\\d{1}|1[0-2])[月/-]{1}([0-2]?\\d{1}|30|31)[日号]?[  	]*([0-1]?\\d{1}|2[0-3])[时点:]([0-5]?\\d{1})[分]?" + suffix, 1, 2, 3, 4)
 		                .setFormat((nowDate.getYear() + 1900) + "-${1}-${2} ${3}:${4}:00"));
 		// 10月8日
-		regexs.add(new CRegex(prefix + (prefix.length() == 0 ? "^" : "") + "{1}(0?\\d{1}|1[0-2])[月/-]{1}([0-2]?\\d{1}|30|31)[日号]?" + suffix, 1, 2).setFormat((nowDate.getYear() + 1900) + "-${1}-${2} 00:00:00"));
-		regexs.add(new CRegex(prefix + "[^0-9]+{1}(0?\\d{1}|1[0-2])[月/-]{1}([0-2]?\\d{1}|30|31)[日号]?" + suffix, 1, 2).setFormat((nowDate.getYear() + 1900) + "-${1}-${2} 00:00:00"));
+		regexs.add(new CRegex(prefix + (prefix.length() == 0 ? "^" : "") + "{1}(0?\\d{1}|1[0-2])[月/-]{1}([0-2]?\\d{1}|30|31)[日号]?" + suffix, 1, 2)
+		                .setFormat((nowDate.getYear() + 1900) + "-${1}-${2} 00:00:00"));
+		regexs.add(new CRegex(prefix + "[^0-9]+{1}(0?\\d{1}|1[0-2])[月/-]{1}([0-2]?\\d{1}|30|31)[日号]?" + suffix, 1, 2)
+		                .setFormat((nowDate.getYear() + 1900) + "-${1}-${2} 00:00:00"));
 		// 17:15:45
-		regexs.add(new CRegex(prefix + "([0-1]?\\d{1}|2[0-3])[时点:]([0-5]?\\d{1})[分:]([0-5]?\\d{1})[秒刻]?" + suffix, 1, 2, 3).setFormat((nowDate.getYear() + 1900) + "-" + (nowDate.getMonth() + 1) + "-" + nowDate
-		                .getDate() + " ${1}:${2}:${3}"));
+		regexs.add(new CRegex(prefix + "([0-1]?\\d{1}|2[0-3])[时点:]([0-5]?\\d{1})[分:]([0-5]?\\d{1})[秒刻]?" + suffix, 1, 2, 3)
+		                .setFormat((nowDate.getYear() + 1900) + "-" + (nowDate.getMonth() + 1) + "-" + nowDate
+		                                .getDate() + " ${1}:${2}:${3}"));
 		// 17:15
-		regexs.add(new CRegex(prefix + "([0-1]?\\d{1}|2[0-3])[时点:]([0-5]?\\d{1})[分]?" + suffix, 1, 2).setFormat((nowDate.getYear() + 1900) + "-" + (nowDate.getMonth() + 1) + "-" + nowDate
-		                .getDate() + " ${1}:${2}:00"));
+		regexs.add(new CRegex(prefix + "([0-1]?\\d{1}|2[0-3])[时点:]([0-5]?\\d{1})[分]?" + suffix, 1, 2)
+		                .setFormat((nowDate.getYear() + 1900) + "-" + (nowDate.getMonth() + 1) + "-" + nowDate
+		                                .getDate() + " ${1}:${2}:00"));
 		return regexs;
 	}
 	
@@ -63,7 +67,8 @@ public class CRegexLib {
 				try {
 					Calendar rightNow = Calendar.getInstance();
 					rightNow.setTime(new Date());
-					rightNow.add(Calendar.SECOND, (Integer) CExpression.getExpresser().calculate(data));
+					rightNow.add(Calendar.SECOND, (Integer) CExpression.getExpresser()
+					                .calculate(data));
 					return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(rightNow.getTime());
 				}
 				catch (Exception e) {
@@ -74,33 +79,47 @@ public class CRegexLib {
 		CDealDateTime dealDateTime = new CDealDateTime();
 		List<CRegex> regexs = new ArrayList<CRegex>();
 		// 10秒钟前
-		regexs.add(new CRegex(prefix + "(\\d+)秒钟?前" + suffix, 1).setFormat("-${1}").setDataDeal(dealDateTime));
+		regexs.add(new CRegex(prefix + "(\\d+)秒钟?前" + suffix, 1).setFormat("-${1}")
+		                .setDataDeal(dealDateTime));
 		// 10分钟前
-		regexs.add(new CRegex(prefix + "(\\d+)分钟前" + suffix, 1).setFormat("-${1}*60").setDataDeal(dealDateTime));
+		regexs.add(new CRegex(prefix + "(\\d+)分钟前" + suffix, 1).setFormat("-${1}*60")
+		                .setDataDeal(dealDateTime));
 		// 10小时前
-		regexs.add(new CRegex(prefix + "(\\d+)小时前" + suffix, 1).setFormat("-${1}*60*60").setDataDeal(dealDateTime));
+		regexs.add(new CRegex(prefix + "(\\d+)小时前" + suffix, 1).setFormat("-${1}*60*60")
+		                .setDataDeal(dealDateTime));
 		// 10天前
-		regexs.add(new CRegex(prefix + "(\\d+)天前" + suffix, 1).setFormat("-${1}*60*60*24").setDataDeal(dealDateTime));
+		regexs.add(new CRegex(prefix + "(\\d+)天前" + suffix, 1).setFormat("-${1}*60*60*24")
+		                .setDataDeal(dealDateTime));
 		// 昨天
-		regexs.add(new CRegex(prefix + "(昨天)" + suffix, 1).setFormat("-60*60*24").setDataDeal(dealDateTime));
+		regexs.add(new CRegex(prefix + "(昨天)" + suffix, 1).setFormat("-60*60*24")
+		                .setDataDeal(dealDateTime));
 		// 前天
-		regexs.add(new CRegex(prefix + "(前天)" + suffix, 1).setFormat("-2*60*60*24").setDataDeal(dealDateTime));
+		regexs.add(new CRegex(prefix + "(前天)" + suffix, 1).setFormat("-2*60*60*24")
+		                .setDataDeal(dealDateTime));
 		// 10周前
-		regexs.add(new CRegex(prefix + "(\\d+)(周|星期)前" + suffix, 1).setFormat("-${1}*60*60*24*7").setDataDeal(dealDateTime));
+		regexs.add(new CRegex(prefix + "(\\d+)(周|星期)前" + suffix, 1).setFormat("-${1}*60*60*24*7")
+		                .setDataDeal(dealDateTime));
 		// 10秒钟后
-		regexs.add(new CRegex(prefix + "(\\d+)秒钟?后" + suffix, 1).setFormat("${1}").setDataDeal(dealDateTime));
+		regexs.add(new CRegex(prefix + "(\\d+)秒钟?后" + suffix, 1).setFormat("${1}")
+		                .setDataDeal(dealDateTime));
 		// 10分钟后
-		regexs.add(new CRegex(prefix + "(\\d+)分钟后" + suffix, 1).setFormat("${1}*60").setDataDeal(dealDateTime));
+		regexs.add(new CRegex(prefix + "(\\d+)分钟后" + suffix, 1).setFormat("${1}*60")
+		                .setDataDeal(dealDateTime));
 		// 10小时后
-		regexs.add(new CRegex(prefix + "(\\d+)小时后" + suffix, 1).setFormat("${1}*60*60").setDataDeal(dealDateTime));
+		regexs.add(new CRegex(prefix + "(\\d+)小时后" + suffix, 1).setFormat("${1}*60*60")
+		                .setDataDeal(dealDateTime));
 		// 10天后
-		regexs.add(new CRegex(prefix + "(\\d+)天后" + suffix, 1).setFormat("${1}*60*60*24").setDataDeal(dealDateTime));
+		regexs.add(new CRegex(prefix + "(\\d+)天后" + suffix, 1).setFormat("${1}*60*60*24")
+		                .setDataDeal(dealDateTime));
 		// 明天
-		regexs.add(new CRegex(prefix + "(明天)" + suffix, 1).setFormat("60*60*24").setDataDeal(dealDateTime));
+		regexs.add(new CRegex(prefix + "(明天)" + suffix, 1).setFormat("60*60*24")
+		                .setDataDeal(dealDateTime));
 		// 后天
-		regexs.add(new CRegex(prefix + "(后天)" + suffix, 1).setFormat("2*60*60*24").setDataDeal(dealDateTime));
+		regexs.add(new CRegex(prefix + "(后天)" + suffix, 1).setFormat("2*60*60*24")
+		                .setDataDeal(dealDateTime));
 		// 10周后
-		regexs.add(new CRegex(prefix + "(\\d+)(周|星期)后" + suffix, 1).setFormat("${1}*60*60*24*7").setDataDeal(dealDateTime));
+		regexs.add(new CRegex(prefix + "(\\d+)(周|星期)后" + suffix, 1).setFormat("${1}*60*60*24*7")
+		                .setDataDeal(dealDateTime));
 		return regexs;
 	}
 	
@@ -146,14 +165,19 @@ public class CRegexLib {
 	public static List<CRegex> houseStyleRegex(String prefix, String suffix) {
 		final String keywords = "房|室|卧|厅|厨|卫|阳台";
 		List<CRegex> regexs = new ArrayList<CRegex>();
-		regexs.add(new CRegex(prefix + "((([0-9]+|[零一二三四五六七八九]+)(" + keywords + ")[ ]*)+)" + suffix).setDeepSelect(new CDeepSelect(keywords)).setDataDeal(new CRegex.IDeal() {
-			
-			@Override
-			public String deal(String data) {
-				return data.replaceAll("零", "0").replaceAll("一", "1").replaceAll("二", "2").replaceAll("三", "3").replaceAll("四", "4").replaceAll("五", "5").replaceAll("六", "6")
-				                .replaceAll("七", "7").replaceAll("八", "8").replaceAll("九", "9");
-			}
-		}));
+		regexs.add(new CRegex(prefix + "((([0-9]+|[零一二三四五六七八九]+)(" + keywords + ")[ ]*)+)" + suffix)
+		                .setDeepSelect(new CDeepSelect(keywords)).setDataDeal(new CRegex.IDeal() {
+			                
+			                @Override
+			                public String deal(String data) {
+				                return data.replaceAll("零", "0").replaceAll("一", "1")
+				                                .replaceAll("二", "2").replaceAll("三", "3")
+				                                .replaceAll("四", "4").replaceAll("五", "5")
+				                                .replaceAll("六", "6")
+				                                .replaceAll("七", "7").replaceAll("八", "8")
+				                                .replaceAll("九", "9");
+			                }
+		                }));
 		return regexs;
 	}
 	
@@ -182,16 +206,17 @@ public class CRegexLib {
 		final String keywords = " |省|市|县|区|乡|镇|村|圃|屯|旗|盟|州|路口|路|郡|街|道口|道|小区|区|支|弄|巷|里|站|栋|幢|号|座|楼|府|公寓|大厦|公司|银行|医院|酒吧|小学|中学|大学|超市|大队|世界|中心|单元|校|层|库|池|社|会|厂|团|寺|场|园|苑|馆|局|部|室|所|城|店|院|公里|米|地块|旁边|附近|斜|对面|东|西|南|北|前|后|左|右|内|侧|交叉口|交口|交界处|交汇处|河边";
 		final String reg = "(((?<=\\b|\\s|\\pP)[\u4e00-\u9fa5]++[\uff10-\uff19\uff21-\uff3a\uff41-\uff5a,-]*.*?(?<=" + keywords + "\b))+)";
 		List<CRegex> regexs = new ArrayList<CRegex>();
-		regexs.add(new CRegex(prefix + reg + suffix, 1).setSize(50).setDeepSelect(new CDeepSelect(keywords)));
+		regexs.add(new CRegex(prefix + reg + suffix, 1).setSize(50)
+		                .setDeepSelect(new CDeepSelect(keywords)));
 		return regexs;
 	}
 }
 
 class CDeepSelect implements CRegex.IDeepSelect {
 	
-	private static Pattern pattenOut = Pattern.compile("(?is)(\\pP[t|b|z|r|d|p|c|e|y|o|h|k][a-z]*)|(\\pP[u](?!serDefine)[a-z]*)");
-	private static double  avgAddLen = 25;
-	private String[]       ws        = null;
+	//private static Pattern pattenOut = Pattern.compile("(?is)(\\pP[t|b|z|r|d|p|c|e|y|o|h|k][a-z]*)|(\\pP[u](?!serDefine)[a-z]*)");
+	private static double avgAddLen = 25;
+	private String[]      ws        = null;
 	
 	public CDeepSelect(String keywords) {
 		ws = keywords.split("\\|");

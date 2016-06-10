@@ -10,7 +10,6 @@ package Job;
 
 import org.apache.logging.log4j.Logger;
 
-import redis.clients.jedis.Jedis;
 import Log.CLog;
 
 /**
@@ -70,34 +69,32 @@ public class CJobService4Worker {
 			@Override
 			public void run() {
 				try {
-					String jobString = queue.getJob(CJobQueue.QUEUE_INDEX_JOB);
+					String jobString = queue.getData(CJobQueue.QUEUE_INDEX_JOB);
 					if (jobString == null) {
 						jobCounter.increment();
 						return;
 					}
 					//
-					Jedis jedisRunning = queue.getJedis(CJobQueue.MDB_INDEX_RUNNING);
-					if (jedisRunning.exists(jobString)) {
+					if (queue.jedisExists(CJobQueue.MDB_INDEX_RUNNING, jobString)) {
 						logger.info("Duplicate running " + jobString);
 					}
 					else {
-						jedisRunning.set(jobString, "1");
+						queue.jedisSet(CJobQueue.MDB_INDEX_RUNNING, jobString, "1");
 						try {
 							if (worker.execute(jobString)) {
-								queue.addJob(CJobQueue.QUEUE_INDEX_RESULT, jobString);
+								queue.addData(CJobQueue.QUEUE_INDEX_RESULT, jobString);
 								logger.info("Job SUCCESS and return QUEUE_INDEX_RESULT : " + jobString);
 							}
 							else {
-								queue.addJob(CJobQueue.QUEUE_INDEX_FAIL, jobString);
+								queue.addData(CJobQueue.QUEUE_INDEX_FAIL, jobString);
 								logger.warn("Job FALSE : " + jobString);
 							}
 						}
 						catch (Exception e) {
 							logger.warn(e.getMessage(), e);
 						}
-						jedisRunning.del(jobString);
+						queue.jedisDel(CJobQueue.MDB_INDEX_RUNNING, jobString);
 					}
-					jedisRunning.close();
 				}
 				catch (Exception e) {
 					logger.warn(e.getMessage(), e);

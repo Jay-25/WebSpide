@@ -8,9 +8,9 @@ import net.sf.json.JSONObject;
 
 import org.apache.logging.log4j.Logger;
 
-import redis.clients.jedis.Jedis;
 import Extract.Json.CJson;
 import Job.CJobCounter;
+import Job.CJobQueue;
 import Job.CJobService4WorkerConfig;
 import Job.CJobThread;
 import Job.IJobConsole;
@@ -37,17 +37,17 @@ public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 	
 	protected class Paras {
 		
-		public CJobService4WorkerConfig spideConfig  = null; // ini配置中的SPIDE项
-		public Jedis                    spideLogEdis = null; // 记录该URL完成的页数
-		public String                   path         = null; // 该作业的class位置
-		public String                   jobname      = null; // 该作业的class名称
-		public String                   url          = null; // 该作业处理的URL
-		public ArrayList<String>        spideParas   = null; // 该作业在sjob文件中配置的参数
+		public CJobService4WorkerConfig spideConfig = null; // ini配置中的SPIDE项
+		public CJobQueue                jobQueue    = null; // 记录该URL完成的页数
+		public String                   path        = null; // 该作业的class位置
+		public String                   jobname     = null; // 该作业的class名称
+		public String                   url         = null; // 该作业处理的URL
+		public ArrayList<String>        spideParas  = null; // 该作业在sjob文件中配置的参数
 		
 		@SuppressWarnings("unchecked")
 		public Paras(Object... arg0) {
 			spideConfig = (CJobService4WorkerConfig) arg0[0];
-			spideLogEdis = (Jedis) arg0[1];
+			jobQueue = (CJobQueue) arg0[1];
 			path = (String) arg0[2];
 			jobname = (String) arg0[3];
 			url = (String) arg0[4];
@@ -87,7 +87,7 @@ public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 		//
 		int pageNum = 0;
 		try {
-			String json = paras.spideLogEdis.get(key);
+			String json = paras.jobQueue.jedisGet(CJobQueue.MDB_INDEX_LOG, key);
 			if (json != null) {
 				CJson argJson = new CJson(json);
 				argJson.process();
@@ -187,7 +187,7 @@ public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 			json.clear();
 			json.put("page", finalpageNum);
 			json.put("url", page.getUrl().toString());
-			paras.spideLogEdis.set(key, json.toString());
+			paras.jobQueue.jedisSet(CJobQueue.MDB_INDEX_LOG, key, json.toString());
 			//
 			if (isStop) break;
 			//
@@ -202,7 +202,7 @@ public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 		}
 		json = null;
 		paras.spideParas = null;
-		paras.spideLogEdis.del(key);
+		paras.jobQueue.jedisDel(CJobQueue.MDB_INDEX_LOG, key);
 		return true;
 	}
 	

@@ -8,7 +8,6 @@ import java.util.ArrayList;
 
 import org.apache.logging.log4j.Logger;
 
-import redis.clients.jedis.Jedis;
 import Algorithm.Segment.dic.CSegment;
 import ClassLoader.CClassLoader;
 import Job.CJobQueue;
@@ -66,9 +65,7 @@ public class WebSpide {
 					boolean result = true;
 					SpideEntryBase job = (SpideEntryBase) CClassLoader.loadInstance(path, jobname);
 					if (job != null) {
-						Jedis spideLogEdis = jobQueue.getJedis(CJobQueue.MDB_INDEX_LOG);
-						result = job.run(jobService4WorkerConfig, spideLogEdis, path, jobname, url, paras);
-						spideLogEdis.close();
+						result = job.run(jobService4WorkerConfig, jobQueue, path, jobname, url, paras);
 						job = null;
 					}
 					else {

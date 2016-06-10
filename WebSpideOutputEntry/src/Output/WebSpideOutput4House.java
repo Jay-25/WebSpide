@@ -24,7 +24,6 @@ import org.dtools.ini.IniFile;
 import org.dtools.ini.IniFileReader;
 import org.dtools.ini.IniSection;
 
-import redis.clients.jedis.Jedis;
 import Extract.Json.CJson;
 import Job.CJobQueue;
 import Job.CJobQueueConfig;
@@ -34,7 +33,7 @@ import SpiderBase.CSpideOutput;
 
 public class WebSpideOutput4House extends CSpideOutput {
 	
-	private final static String clzName             = "WebSpideOutput4House";
+	private final static String clzName              = "WebSpideOutput4House";
 	//
 	private final static Logger logger;
 	static {
@@ -42,10 +41,11 @@ public class WebSpideOutput4House extends CSpideOutput {
 		logger = CLog.getLogger();
 	}
 	//
-	private static boolean      isPrint             = true;
+	private static boolean      isPrint              = true;
 	//
-	private final static int    QUEUE_INDEX_OUTPUT  = 0;
-	private final static int    MDB_INDEX_DUPLICATE = 1;
+	private final static int    QUEUE_INDEX_OUTPUT   = 0;
+	private final static int    MDB_INDEX_DUPLICATE  = 1;
+	private final String        key_Outputer_Running = "Outputer-Running-" + clzName;
 	
 	private static enum Status {
 		STATUS_OK, STATUS_ERROR, STATUS_EXIST
@@ -209,13 +209,11 @@ public class WebSpideOutput4House extends CSpideOutput {
 				}
 				else {
 					String key = datajson.query("./url_cofrom").toString();
-					Jedis dupJeds = outputQueue.getJedis(MDB_INDEX_DUPLICATE);
 					int dup = 1;
-					if (dupJeds.exists(key)) {
-						dup += Integer.parseInt(dupJeds.get(key));
+					if (outputQueue.jedisExists(MDB_INDEX_DUPLICATE, key)) {
+						dup += Integer.parseInt(outputQueue.jedisGet(MDB_INDEX_DUPLICATE, key));
 					}
-					dupJeds.set(key, "" + dup);
-					dupJeds.close();
+					outputQueue.jedisSet(MDB_INDEX_DUPLICATE, key, "" + dup);
 					return Status.STATUS_EXIST;
 				}
 			}
@@ -294,7 +292,7 @@ public class WebSpideOutput4House extends CSpideOutput {
 				isPrint = false;
 			}
 		}
-		logger.info("Begin [ " + clzName + " ]" + (test ? "(test)" : ""));
+		if (!stop) logger.info("Begin [ " + clzName + " ]" + (test ? "(test)" : ""));
 		//
 		try {
 			init(iniFileName);
@@ -308,6 +306,7 @@ public class WebSpideOutput4House extends CSpideOutput {
 		final CJobQueue outputQueue = new CJobQueue(jobQueueConfig);
 		outputQueue.setQueueName(jobQueueConfig.getQueueName() + "-OUTPUT");
 		if (stop) {
+			outputQueue.jedisSet(CJobQueue.MDB_INDEX_SERVER, key_Outputer_Running, "0");
 		}
 		else {
 			final boolean finalTest = test;
@@ -321,8 +320,10 @@ public class WebSpideOutput4House extends CSpideOutput {
 					long numExit = 0;
 					long numError = 0;
 					long showCounter = 0;
-					while (true) {
-						while (outputQueue.length(CJobQueue.QUEUE_INDEX_JOB) <= 0) {
+					outputQueue.jedisSet(CJobQueue.MDB_INDEX_SERVER, key_Outputer_Running, "1");
+					while (outputQueue.jedisGet(CJobQueue.MDB_INDEX_SERVER, key_Outputer_Running).equals("1")) {
+						while (outputQueue.jedisGet(CJobQueue.MDB_INDEX_SERVER, key_Outputer_Running).equals("1")
+						                && outputQueue.length(CJobQueue.QUEUE_INDEX_JOB) <= 0) {
 							try {
 								if (!isPrint && ++showCounter % 100 == 0) {
 									System.out.println("--- < " + timestamp + ", OK: " + numOk + ", Exist: " + numExit + ", Error: " + numError + " > ---");
@@ -332,11 +333,15 @@ public class WebSpideOutput4House extends CSpideOutput {
 							catch (InterruptedException e) {
 							}
 						}
+						if (!outputQueue.jedisGet(CJobQueue.MDB_INDEX_SERVER, key_Outputer_Running).equals("1")) {
+							logger.info("End [ " + clzName + " ]");
+							return;
+						}
 						//
 						try {
 							WebSpideOutput4House.Status status = WebSpideOutput4House.Status.STATUS_OK;
 							String strJson = outputQueue
-							                .getJob(WebSpideOutput4House.QUEUE_INDEX_OUTPUT);
+							                .getData(WebSpideOutput4House.QUEUE_INDEX_OUTPUT);
 							if (strJson == null) continue;
 							status = insert(outputQueue, strJson, finalTest);
 							if (status == WebSpideOutput4House.Status.STATUS_OK) {
@@ -361,6 +366,7 @@ public class WebSpideOutput4House extends CSpideOutput {
 							return;
 						}
 					}
+					logger.info("End [ " + clzName + " ]");
 				}
 			}, "Trd-" + clzName + "-main").start();
 		}

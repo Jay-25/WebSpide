@@ -64,12 +64,102 @@ public class CJobQueue {
 		return this.queueName;
 	}
 	
-	public Jedis getJedis(int queueIdx) {
+	public void jedisSet(int jedisIdx, String key, String value) {
+		int retry = 3;
+		while (retry-- > 0) {
+			try {
+				Jedis jedis = getJedis(jedisIdx);
+				jedis.set(key, value);
+				jedis.close();
+				break;
+			}
+			catch (Exception e) {
+				if (retry <= 0) throw (e);
+				logger.error("jedisSet again [" + e.getMessage() + "]", e);
+				try {
+					Thread.sleep(2 * 1000);
+				}
+				catch (Exception e1) {
+				}
+				init();
+			}
+		}
+	}
+	
+	public String jedisGet(int jedisIdx, String key) {
+		int retry = 3;
+		while (retry-- > 0) {
+			try {
+				Jedis jedis = getJedis(jedisIdx);
+				String value = jedis.get(key);
+				jedis.close();
+				return value;
+			}
+			catch (Exception e) {
+				if (retry <= 0) throw (e);
+				logger.error("jedisGet again [" + e.getMessage() + "]", e);
+				try {
+					Thread.sleep(2 * 1000);
+				}
+				catch (Exception e1) {
+				}
+				init();
+			}
+		}
+		return null;
+	}
+	
+	public void jedisDel(int jedisIdx, String key) {
+		int retry = 3;
+		while (retry-- > 0) {
+			try {
+				Jedis jedis = getJedis(jedisIdx);
+				jedis.del(key);
+				jedis.close();
+				break;
+			}
+			catch (Exception e) {
+				if (retry <= 0) throw (e);
+				logger.error("jedisDel again [" + e.getMessage() + "]", e);
+				try {
+					Thread.sleep(2 * 1000);
+				}
+				catch (Exception e1) {
+				}
+				init();
+			}
+		}
+	}
+	
+	public boolean jedisExists(int jedisIdx, String key) {
+		int retry = 3;
+		while (retry-- > 0) {
+			try {
+				Jedis jedis = getJedis(jedisIdx);
+				boolean result = jedis.exists(key);
+				jedis.close();
+				return result;
+			}
+			catch (Exception e) {
+				if (retry <= 0) throw (e);
+				logger.error("jedisExists again [" + e.getMessage() + "]", e);
+				try {
+					Thread.sleep(2 * 1000);
+				}
+				catch (Exception e1) {
+				}
+				init();
+			}
+		}
+		return false;
+	}
+	
+	private Jedis getJedis(int jedisIdx) {
 		int retry = 3;
 		while (retry-- > 0) {
 			try {
 				Jedis jedis = pool.getResource();
-				jedis.select(queueIdx);
+				jedis.select(jedisIdx);
 				return jedis;
 			}
 			catch (Exception e) {
@@ -87,34 +177,114 @@ public class CJobQueue {
 	}
 	
 	public void empty() {
-		Jedis jedis = pool.getResource();
-		jedis.flushAll();
-		jedis.close();
+		int retry = 3;
+		while (retry-- > 0) {
+			try {
+				Jedis jedis = pool.getResource();
+				jedis.flushAll();
+				jedis.close();
+				break;
+			}
+			catch (Exception e) {
+				if (retry <= 0) throw (e);
+				logger.error("empty() again [" + e.getMessage() + "]", e);
+				try {
+					Thread.sleep(2 * 1000);
+				}
+				catch (Exception e1) {
+				}
+				init();
+			}
+		}
 	}
 	
-	public void empty(int queueIdx) {
-		Jedis jedis = getJedis(queueIdx);
-		jedis.flushDB();
-		jedis.close();
+	public void empty(int jedisIdx) {
+		int retry = 3;
+		while (retry-- > 0) {
+			try {
+				Jedis jedis = getJedis(jedisIdx);
+				jedis.flushDB();
+				jedis.close();
+				break;
+			}
+			catch (Exception e) {
+				if (retry <= 0) throw (e);
+				logger.error("empty(" + jedisIdx + ") again [" + e.getMessage() + "]", e);
+				try {
+					Thread.sleep(2 * 1000);
+				}
+				catch (Exception e1) {
+				}
+				init();
+			}
+		}
 	}
 	
-	public long length(int queueIdx) {
-		Jedis jedis = getJedis(queueIdx);
-		long len = jedis.llen(queueName);
-		jedis.close();
-		return len;
+	public long length(int jedisIdx) {
+		int retry = 3;
+		while (retry-- > 0) {
+			try {
+				Jedis jedis = getJedis(jedisIdx);
+				long len = jedis.llen(queueName);
+				jedis.close();
+				return len;
+			}
+			catch (Exception e) {
+				if (retry <= 0) throw (e);
+				logger.error("length(" + jedisIdx + ") again [" + e.getMessage() + "]", e);
+				try {
+					Thread.sleep(2 * 1000);
+				}
+				catch (Exception e1) {
+				}
+				init();
+			}
+		}
+		return -1;
 	}
 	
-	public void addJob(int queueIdx, String... jobs) {
-		Jedis jedis = getJedis(queueIdx);
-		jedis.rpush(queueName, jobs);
-		jedis.close();
+	public void addData(int jedisIdx, String... jobs) {
+		int retry = 3;
+		while (retry-- > 0) {
+			try {
+				Jedis jedis = getJedis(jedisIdx);
+				jedis.rpush(queueName, jobs);
+				jedis.close();
+				break;
+			}
+			catch (Exception e) {
+				if (retry <= 0) throw (e);
+				logger.error("empty(" + jedisIdx + ") again [" + e.getMessage() + "]", e);
+				try {
+					Thread.sleep(2 * 1000);
+				}
+				catch (Exception e1) {
+				}
+				init();
+			}
+		}
 	}
 	
-	public String getJob(int queueIdx) {
-		Jedis jedis = getJedis(queueIdx);
-		String str = jedis.lpop(queueName);
-		jedis.close();
-		return str;
+	public String getData(int jedisIdx) {
+		int retry = 3;
+		while (retry-- > 0) {
+			try {
+				Jedis jedis = getJedis(jedisIdx);
+				String str = jedis.lpop(queueName);
+				jedis.close();
+				return str;
+			}
+			catch (Exception e) {
+				if (retry <= 0) throw (e);
+				logger.error("empty(" + jedisIdx + ") again [" + e.getMessage() + "]", e);
+				try {
+					Thread.sleep(2 * 1000);
+				}
+				catch (Exception e1) {
+				}
+				init();
+			}
+		}
+		return null;
 	}
 }

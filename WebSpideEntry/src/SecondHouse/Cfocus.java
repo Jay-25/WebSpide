@@ -6,7 +6,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 
-import redis.clients.jedis.Jedis;
 import Algorithm.Math.CEncry;
 import Algorithm.Math.CExpression;
 import DataSet.CDataSet4House;
@@ -67,9 +66,7 @@ public class Cfocus extends SpideEntryBase {
 		dataSet.bindRegexTable(regexTable);
 		//
 		outputQueue = COutputQueue.getOutputQueue(paras.spideConfig.getConfigFile());
-		Jedis jedis = outputQueue.getJedis(COutputQueue.MDB_INDEX_DUPLICATE);
-		jedis.del(paras.url);
-		jedis.close();
+		outputQueue.jedisDel(COutputQueue.MDB_INDEX_DUPLICATE, paras.url);
 	}
 	
 	@Override
@@ -111,14 +108,12 @@ public class Cfocus extends SpideEntryBase {
 			return false;
 		}
 		//
-		Jedis dupJeds = outputQueue.getJedis(COutputQueue.MDB_INDEX_DUPLICATE);
-		if (dupJeds.exists(paras.url)) {
-			if (Integer.parseInt(dupJeds.get(paras.url)) > spidedDuplicateNum) {
+		if (outputQueue.jedisExists(COutputQueue.MDB_INDEX_DUPLICATE, paras.url)) {
+			if (Integer.parseInt(outputQueue.jedisGet(COutputQueue.MDB_INDEX_DUPLICATE, paras.url)) > spidedDuplicateNum) {
 				stop();
 				valid = false;
 			}
 		}
-		dupJeds.close();
 		return valid;
 	}
 	
@@ -131,7 +126,9 @@ public class Cfocus extends SpideEntryBase {
 		String curUrl = (String) linkItem;
 		//
 		CAdvanceSpideExplorer explorer = new CAdvanceSpideExplorer(BrowserVersion.CHROME);
-		HtmlPage curPage = explorer.getPage(curUrl, paras.spideConfig.getAttempt(), paras.spideConfig.getAttemptMS());
+		HtmlPage curPage = explorer
+		                .getPage(curUrl, paras.spideConfig.getAttempt(), paras.spideConfig
+		                                .getAttemptMS());
 		explorer.close();
 		explorer = null;
 		//
@@ -157,7 +154,7 @@ public class Cfocus extends SpideEntryBase {
 		//
 		if (dataSet.isValidData()) {
 			String dataJson = dataSet.toJson().toString();
-			outputQueue.addJob(COutputQueue.QUEUE_INDEX_OUTPUT, dataJson);
+			outputQueue.addData(COutputQueue.QUEUE_INDEX_OUTPUT, dataJson);
 		}
 		else {
 			logger.warn("Parse Fail [" + curUrl + "]");
@@ -171,7 +168,8 @@ public class Cfocus extends SpideEntryBase {
 		// 站内标识
 		regexTable.set("web_in_uid", new CRegex("ID:(\\d+)", 1), new CRegex("编号:(\\w+-\\d+)", 1));
 		// 发布时间
-		regexTable.set("release_time", CRegexLib.dateTimeRegex("", ""), CRegexLib.dateTimeOffsetRegex("", ""));
+		regexTable.set("release_time", CRegexLib.dateTimeRegex("", ""), CRegexLib
+		                .dateTimeOffsetRegex("", ""));
 		// 总价
 		regexTable.set("price", new CRegex("售价:?\\s*([0-9.]+)\\s*万", 1), new CRegex("\\s*([0-9.]+)\\s*万\\s*单价", 1), new CRegex("总\\s*价[:\\s]*([0-9.]+)\\s*万", 1), new CRegex("房源价格:\\s*([0-9.]+)\\s*万", 1));
 		// 单价
@@ -195,23 +193,26 @@ public class Cfocus extends SpideEntryBase {
 		// 建筑面积
 		regexTable.set("build_area", new CRegex("([0-9.]+)㎡", 1));
 		// 年代
-		regexTable.set("build_time_year", new CRegex("建?筑?造?年\\s*代[:\\s]*([0-9]*)", 1), new CRegex("房龄:\\s*([0-9]*)", 1).setFormat("-${1}").setDataDeal(new CRegex.IDeal() {
-			
-			@Override
-			public String deal(String data) {
-				try {
-					Calendar rightNow = Calendar.getInstance();
-					rightNow.setTime(new Date());
-					rightNow.add(Calendar.YEAR, (Integer) CExpression.getExpresser().calculate(data));
-					return new SimpleDateFormat("yyyy").format(rightNow.getTime());
-				}
-				catch (Exception e) {
-				}
-				return data;
-			}
-		}));
+		regexTable.set("build_time_year", new CRegex("建?筑?造?年\\s*代[:\\s]*([0-9]*)", 1), new CRegex("房龄:\\s*([0-9]*)", 1)
+		                .setFormat("-${1}").setDataDeal(new CRegex.IDeal() {
+			                
+			                @Override
+			                public String deal(String data) {
+				                try {
+					                Calendar rightNow = Calendar.getInstance();
+					                rightNow.setTime(new Date());
+					                rightNow.add(Calendar.YEAR, (Integer) CExpression
+					                                .getExpresser().calculate(data));
+					                return new SimpleDateFormat("yyyy").format(rightNow.getTime());
+				                }
+				                catch (Exception e) {
+				                }
+				                return data;
+			                }
+		                }));
 		// 朝向
-		regexTable.set("build_face", CRegexLib.houseFaceRegex("房?间?朝\\s*向[:\\s]*", ""), CRegexLib.houseFaceRegex("朝\\s*", ""));
+		regexTable.set("build_face", CRegexLib.houseFaceRegex("房?间?朝\\s*向[:\\s]*", ""), CRegexLib
+		                .houseFaceRegex("朝\\s*", ""));
 		// 楼层
 		regexTable.set("build_layer", new CRegex("楼层[:\\s]*(\\d+)/\\d+", 1), new CRegex("楼层[:\\s]*(\\w+)层", 1), new CRegex("第(\\d+)层", 1));
 		// 总楼层
@@ -219,7 +220,8 @@ public class Cfocus extends SpideEntryBase {
 		// 地址-小区
 		regexTable.set("address_city", new CRegex("小区名?称?[:\\s]*([\u0000-\uffff]*?)\\s", 1), new CRegex("\\s*([\u0000-\uffff]+?)小区", 1));
 		// 地址
-		regexTable.set("address", new CRegex("地址:\\s*(.*?)(地图|性质|详细介绍)", 1), CRegexLib.addressRegex("地\\s*址[:\\s]*", ""), CRegexLib.addressRegex("位于[:\\s]*", ""), CRegexLib
+		regexTable.set("address", new CRegex("地址:\\s*(.*?)(地图|性质|详细介绍)", 1), CRegexLib
+		                .addressRegex("地\\s*址[:\\s]*", ""), CRegexLib.addressRegex("位于[:\\s]*", ""), CRegexLib
 		                .addressRegex("", ""));
 		// 开发商
 		regexTable.set("develop_company", new CRegex("开\\s*发\\s*商[:\\s]*(\\w+)\\s", 1));
@@ -238,12 +240,16 @@ public class Cfocus extends SpideEntryBase {
 	}
 	
 	private void autoSet(CSpideDataStruct dataSet, String... args) {
-		if (dataSet.isNull(dataSet.getData("release_time"))) dataSet.setValue("release_time", CDateTime.getCurrentTime("yyyy-MM-dd"));
-		dataSet.setValue("address", (paras.spideParas.get(1) + "," + dataSet.getData("build_name", "") + "," + dataSet.getData("address_city", "") + "," + dataSet.getData("address", ""))
+		if (dataSet.isNull(dataSet.getData("release_time"))) dataSet
+		                .setValue("release_time", CDateTime.getCurrentTime("yyyy-MM-dd"));
+		dataSet.setValue("address", (paras.spideParas.get(1) + "," + dataSet
+		                .getData("build_name", "") + "," + dataSet.getData("address_city", "") + "," + dataSet
+		                .getData("address", ""))
 		                .replaceAll("(\\pP)\\pP*", "$1"));
 		//
 		dataSet.setValue("style", "BaiDu");
-		CDataCoordinate coordinate = CGeography.getInstance().getCoordinate_Baidu((String) dataSet.getData("address"));
+		CDataCoordinate coordinate = CGeography.getInstance()
+		                .getCoordinate_Baidu((String) dataSet.getData("address"));
 		if (coordinate != null) {
 			dataSet.setValue("longitude", coordinate.getLongitude());
 			dataSet.setValue("latitude", coordinate.getLatitude());

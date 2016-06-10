@@ -25,7 +25,6 @@ import net.sf.json.JSONObject;
 
 import org.apache.logging.log4j.Logger;
 
-import redis.clients.jedis.Jedis;
 import Log.CLog;
 
 /**
@@ -71,12 +70,11 @@ public class CJobService4Server {
 			
 			@Override
 			public void run() {
-				logger.info("--- Server Running ---");
+				logger.info("--- Server Begin ---");
 				if (isOnceModel && jobQueue.length(CJobQueue.QUEUE_INDEX_JOB) > 0) {
 					return;
 				}
-				Jedis jedis = jobQueue.getJedis(CJobQueue.MDB_INDEX_SERVER);
-				jedis.set(key_Server_Running, "1");
+				jobQueue.jedisSet(CJobQueue.MDB_INDEX_SERVER, key_Server_Running, "1");
 				FilenameFilter filenameFilter = new FilenameFilter() {
 					
 					@Override
@@ -84,11 +82,15 @@ public class CJobService4Server {
 						return name.endsWith(config.getJobFileExName());
 					}
 				};
-				while (jedis.get(key_Server_Running).equals("1")) {
-					while (jedis.get(key_Server_Running).equals("1") && jobQueue.length(CJobQueue.QUEUE_INDEX_JOB) > 0) {
+				while (jobQueue.jedisGet(CJobQueue.MDB_INDEX_SERVER, key_Server_Running).equals("1")) {
+					while (jobQueue.jedisGet(CJobQueue.MDB_INDEX_SERVER, key_Server_Running).equals("1")
+					                && jobQueue.length(CJobQueue.QUEUE_INDEX_JOB) > 0) {
 						sleep(50);
 					}
-					if (!jedis.get(key_Server_Running).equals("1")) return;
+					if (!jobQueue.jedisGet(CJobQueue.MDB_INDEX_SERVER, key_Server_Running).equals("1")) {
+						logger.info("--- Server End ---");
+						return;
+					}
 					//
 					Date now = new Date();
 					String timestamp = dateFormat.format(now);
@@ -116,7 +118,7 @@ public class CJobService4Server {
 						filesOrDirs = null;
 					}
 					while (jobQueue.length(CJobQueue.QUEUE_INDEX_FAIL) > 0) {
-						String failJobStr = jobQueue.getJob(CJobQueue.QUEUE_INDEX_FAIL);
+						String failJobStr = jobQueue.getData(CJobQueue.QUEUE_INDEX_FAIL);
 						for (int i = 0; i < jobList.size(); i++) {
 							if (jobList.get(i).equals(failJobStr)) {
 								jobList.remove(i);
@@ -125,7 +127,7 @@ public class CJobService4Server {
 						}
 					}
 					String[] jobArray = new String[jobList.size()];
-					jobQueue.addJob(CJobQueue.QUEUE_INDEX_JOB, jobList.toArray(jobArray));
+					jobQueue.addData(CJobQueue.QUEUE_INDEX_JOB, jobList.toArray(jobArray));
 					jobArray = null;
 					jobList = null;
 					System.out.println("Jobs Number: " + jobQueue.length(CJobQueue.QUEUE_INDEX_JOB));
@@ -133,21 +135,18 @@ public class CJobService4Server {
 					//
 					if (isOnceModel) return;
 				}
-				jedis.close();
 				filenameFilter = null;
 			}
 		}, "Trd-" + getClass().getName() + "-run").start();
 	}
 	
 	public void stop(boolean toEmpty) {
-		Jedis jedis = jobQueue.getJedis(CJobQueue.MDB_INDEX_SERVER);
-		jedis.set(key_Server_Running, "0");
+		jobQueue.jedisSet(CJobQueue.MDB_INDEX_SERVER, key_Server_Running, "0");
 		if (toEmpty) {
 			jobQueue.empty(CJobQueue.QUEUE_INDEX_JOB);
 			jobQueue.empty(CJobQueue.QUEUE_INDEX_RESULT);
 			jobQueue.empty(CJobQueue.QUEUE_INDEX_FAIL);
 		}
-		jedis.close();
 	}
 	
 	private ArrayList<String> getJobListFromFile(File file) {

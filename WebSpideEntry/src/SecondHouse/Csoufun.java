@@ -3,7 +3,6 @@ package SecondHouse;
 import java.util.ArrayList;
 import java.util.HashSet;
 
-import redis.clients.jedis.Jedis;
 import Algorithm.Math.CEncry;
 import DataSet.CDataSet4House;
 import DateTime.CDateTime;
@@ -63,9 +62,7 @@ public class Csoufun extends SpideEntryBase {
 		dataSet.bindRegexTable(regexTable);
 		//
 		outputQueue = COutputQueue.getOutputQueue(paras.spideConfig.getConfigFile());
-		Jedis jedis = outputQueue.getJedis(COutputQueue.MDB_INDEX_DUPLICATE);
-		jedis.del(paras.url);
-		jedis.close();
+		outputQueue.jedisDel(COutputQueue.MDB_INDEX_DUPLICATE, paras.url);
 	}
 	
 	@Override
@@ -107,14 +104,12 @@ public class Csoufun extends SpideEntryBase {
 			return false;
 		}
 		//
-		Jedis dupJeds = outputQueue.getJedis(COutputQueue.MDB_INDEX_DUPLICATE);
-		if (dupJeds.exists(paras.url)) {
-			if (Integer.parseInt(dupJeds.get(paras.url)) > spidedDuplicateNum) {
+		if (outputQueue.jedisExists(COutputQueue.MDB_INDEX_DUPLICATE, paras.url)) {
+			if (Integer.parseInt(outputQueue.jedisGet(COutputQueue.MDB_INDEX_DUPLICATE, paras.url)) > spidedDuplicateNum) {
 				stop();
 				valid = false;
 			}
 		}
-		dupJeds.close();
 		return valid;
 	}
 	
@@ -154,7 +149,7 @@ public class Csoufun extends SpideEntryBase {
 		//
 		if (dataSet.isValidData()) {
 			String dataJson = dataSet.toJson().toString();
-			outputQueue.addJob(COutputQueue.QUEUE_INDEX_OUTPUT, dataJson);
+			outputQueue.addData(COutputQueue.QUEUE_INDEX_OUTPUT, dataJson);
 		}
 		else {
 			logger.warn("Parse Fail [" + curUrl + "]");

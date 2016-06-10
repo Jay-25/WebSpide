@@ -6,10 +6,13 @@ package Output;
  * -XX:CMSInitiatingOccupancyFraction=85 -XX:MaxTenuringThreshold=0 -Dcom.sun.management.jmxremote.port=9999 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false
  */
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -28,7 +31,7 @@ import SpiderBase.CSpideOutput;
 
 public class WebSpideOutput4CaiShiChang extends CSpideOutput {
 	
-	private final static String clzName             = "WebSpideOutput4CaiShiChang";
+	private final static String clzName              = "WebSpideOutput4CaiShiChang";
 	//
 	private final static Logger logger;
 	static {
@@ -36,10 +39,10 @@ public class WebSpideOutput4CaiShiChang extends CSpideOutput {
 		logger = CLog.getLogger();
 	}
 	//
-	private static boolean      isPrint             = true;
+	private static boolean      isPrint              = true;
 	//
-	private final static int    QUEUE_INDEX_OUTPUT  = 0;
-	private final static int    MDB_INDEX_DUPLICATE = 1;
+	private final static int    QUEUE_INDEX_OUTPUT   = 0;
+	private final String        key_Outputer_Running = "Outputer-Running-" + clzName;
 	
 	private static enum Status {
 		STATUS_OK, STATUS_ERROR, STATUS_EXIST
@@ -206,6 +209,43 @@ public class WebSpideOutput4CaiShiChang extends CSpideOutput {
 	}
 	
 	private void saveFile(String data) {
+		try {
+			CJson datajson = new CJson(data);
+			datajson.process();
+			//
+			String path = dataPath + File.separator + "CaiJia";
+			File dir = new File(path);
+			if (!dir.isDirectory()) {
+				dir.mkdirs();
+			}
+			dir = null;
+			//
+			DateFormat format2 = new java.text.SimpleDateFormat("yyyyMMdd");
+			String fileName = format2.format(new Date());
+			File file = new File(path + File.separator + datajson.query("./job_name") + "_" + fileName + ".data");
+			FileWriter fw = null;
+			try {
+				fw = new FileWriter(file, true);
+				fw.write(data);
+				fw.write("\n");
+				fw.flush();
+			}
+			catch (IOException e) {
+				logger.error(e.getMessage(), e);
+			}
+			finally {
+				try {
+					fw.close();
+				}
+				catch (IOException e) {
+				}
+				fw = null;
+				datajson = null;
+			}
+		}
+		catch (Exception e) {
+			logger.error(e.getMessage(), e);
+		}
 	}
 	
 	@Override
@@ -239,7 +279,7 @@ public class WebSpideOutput4CaiShiChang extends CSpideOutput {
 				isPrint = false;
 			}
 		}
-		logger.info("Begin [ " + clzName + " ]" + (test ? "(test)" : ""));
+		if (!stop) logger.info("Begin [ " + clzName + " ]" + (test ? "(test)" : ""));
 		//
 		try {
 			init(iniFileName);
@@ -253,6 +293,7 @@ public class WebSpideOutput4CaiShiChang extends CSpideOutput {
 		final CJobQueue outputQueue = new CJobQueue(jobQueueConfig);
 		outputQueue.setQueueName(jobQueueConfig.getQueueName() + "-OUTPUT");
 		if (stop) {
+			outputQueue.jedisSet(CJobQueue.MDB_INDEX_SERVER, key_Outputer_Running, "0");
 		}
 		else {
 			final boolean finalTest = test;
@@ -266,8 +307,10 @@ public class WebSpideOutput4CaiShiChang extends CSpideOutput {
 					long numExit = 0;
 					long numError = 0;
 					long showCounter = 0;
-					while (true) {
-						while (outputQueue.length(CJobQueue.QUEUE_INDEX_JOB) <= 0) {
+					outputQueue.jedisSet(CJobQueue.MDB_INDEX_SERVER, key_Outputer_Running, "1");
+					while (outputQueue.jedisGet(CJobQueue.MDB_INDEX_SERVER, key_Outputer_Running).equals("1")) {
+						while (outputQueue.jedisGet(CJobQueue.MDB_INDEX_SERVER, key_Outputer_Running).equals("1")
+						                && outputQueue.length(CJobQueue.QUEUE_INDEX_JOB) <= 0) {
 							try {
 								if (!isPrint && ++showCounter % 100 == 0) {
 									System.out.println("--- < " + timestamp + ", OK: " + numOk + ", Exist: " + numExit + ", Error: " + numError + " > ---");
@@ -277,11 +320,15 @@ public class WebSpideOutput4CaiShiChang extends CSpideOutput {
 							catch (InterruptedException e) {
 							}
 						}
+						if (!outputQueue.jedisGet(CJobQueue.MDB_INDEX_SERVER, key_Outputer_Running).equals("1")) {
+							logger.info("End [ " + clzName + " ]");
+							return;
+						}
 						//
 						try {
 							WebSpideOutput4CaiShiChang.Status status = WebSpideOutput4CaiShiChang.Status.STATUS_OK;
 							String strJson = outputQueue
-							                .getJob(WebSpideOutput4CaiShiChang.QUEUE_INDEX_OUTPUT);
+							                .getData(WebSpideOutput4CaiShiChang.QUEUE_INDEX_OUTPUT);
 							if (strJson == null) continue;
 							status = insert(outputQueue, strJson, finalTest);
 							if (status == WebSpideOutput4CaiShiChang.Status.STATUS_OK) {
@@ -306,6 +353,7 @@ public class WebSpideOutput4CaiShiChang extends CSpideOutput {
 							return;
 						}
 					}
+					logger.info("End [ " + clzName + " ]");
 				}
 			}, "Trd-" + clzName + "-main").start();
 		}
