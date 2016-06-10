@@ -1,8 +1,8 @@
 #!/bin/sh
 export LANG=zh_CN.GBK
 
-APP=WebSpide.jar 
-APP_PARAS=-c ./CaiShiChang_webspide.ini -once
+APP=WebSpide.jar
+APP_PARAS="-c ./CaiShiChang_webspide.ini -once"
 
 #Jconsole_OPTS="-Dcom.sun.management.jmxremote.port=9999 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false"
 Code_OPTS="-Duser.country=ES -Duser.language=es -Duser.variant=Traditional_WIN -Dfile.encoding=UTF-8"
