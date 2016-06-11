@@ -34,6 +34,7 @@ public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 	
 	private final CJobCounter jobCounter = new CJobCounter();
 	protected boolean         isStop     = false;
+	protected static boolean  isStopAll  = false;
 	
 	protected class Paras {
 		
@@ -68,6 +69,7 @@ public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 	@Override
 	public boolean run(final Object... arg0) {
 		isStop = false;
+		isStopAll = false;
 		//
 		paras = new Paras(arg0);
 		init();
@@ -134,10 +136,10 @@ public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 				jobCounter.init(links.size(), threadNum);
 				for (final Object linkItem : links) {
 					if (linkItem == null) continue;
-					while (!jobCounter.jobIsRunable() && !isStop) {
+					while (!jobCounter.jobIsRunable() && !isStop && !isStopAll) {
 						sleep(50);
 					}
-					if (isStop) break;
+					if (isStop || isStopAll) break;
 					//
 					jobCounter.decrement();
 					new CJobThread(new Callable<Object>() {
@@ -158,7 +160,7 @@ public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 				}
 				links.clear();
 				links = null;
-				while (jobCounter.getJobNum() < threadNum && !isStop) {
+				while (jobCounter.getJobNum() < threadNum && !isStop && !isStopAll) {
 					sleep(50);
 				}
 			}
@@ -179,7 +181,7 @@ public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 					}
 				}, "Trd-" + getClass().getName() + "-run.default", paras.spideConfig.getAttempt(), 3 * 1000, paras.spideConfig
 				                .getTimeOut()).start();
-				while (!jobCounter.jobIsRunable() && !isStop) {
+				while (!jobCounter.jobIsRunable() && !isStop && !isStopAll) {
 					sleep(50);
 				}
 			}
@@ -189,7 +191,7 @@ public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 			json.put("url", page.getUrl().toString());
 			paras.jobQueue.jedisSet(CJobQueue.MDB_INDEX_LOG, key, json.toString());
 			//
-			if (isStop) break;
+			if (isStop || isStopAll) break;
 			//
 			logger.info("[ " + page.getUrl().toString() + " ] -> to next page ...");
 			page = nextPage(finalpage, finalpageNum);
@@ -208,6 +210,10 @@ public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 	
 	protected void stop() {
 		isStop = true;
+	}
+	
+	public static void stopAll() {
+		isStopAll = true;
 	}
 	
 	protected void sleep(long ms) {

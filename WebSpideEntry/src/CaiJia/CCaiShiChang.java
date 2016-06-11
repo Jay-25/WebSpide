@@ -59,6 +59,7 @@ public class CCaiShiChang extends SpideEntryBase {
 					int nrv = (Integer) query(nu, "nrv");
 					//
 					dataSet.clear();
+					dataSet.setValue("job_name", this.getClass().getName());
 					dataSet.setValue("dataStyle", 1);
 					dataSet.setValue("food", food.trim());
 					dataSet.setValue("name", name.trim());
@@ -104,6 +105,7 @@ public class CCaiShiChang extends SpideEntryBase {
 					Boolean average = (Boolean) query(obj_food, "average");
 					//
 					dataSet.clear();
+					dataSet.setValue("job_name", this.getClass().getName());
 					dataSet.setValue("dataStyle", 0);
 					dataSet.setValue("updateTime", updateTime.trim());
 					dataSet.setValue("market", market.trim());
@@ -177,6 +179,7 @@ public class CCaiShiChang extends SpideEntryBase {
 						final String name = (String) query((JObject) obj_mks.get(k), "name");
 						//
 						dataSet.clear();
+						dataSet.setValue("job_name", this.getClass().getName());
 						dataSet.setValue("dataStyle", 2);
 						dataSet.setValue("district", district.trim());
 						dataSet.setValue("type", type.trim());

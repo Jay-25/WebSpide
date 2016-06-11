@@ -97,7 +97,7 @@ public class CYiMuTian extends SpideEntryBase {
 			return;
 		}
 		CAdvanceSpideExplorer explorer = new CAdvanceSpideExplorer(BrowserVersion.CHROME);
-		HtmlPage newsPage = explorer.getPage((String) linkItem);
+		HtmlPage newsPage = explorer.getPage((String) linkItem, 3, 1000);
 		CHtmlTrim.removeHidenElement(newsPage);
 		List<HtmlElement> bds = newsPage.getDocumentElement()
 		                .getElementsByAttribute("li", "class", "bd");
@@ -108,6 +108,7 @@ public class CYiMuTian extends SpideEntryBase {
 			//
 			dataSet.clear();
 			dataSet.processRegex(html);
+			dataSet.setValue("job_name", this.getClass().getName());
 			dataSet.setValue("type", paras.spideParas.get(1));
 			//
 			if (dataSet.isValidData()) {

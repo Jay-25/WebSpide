@@ -30,11 +30,13 @@ public class WebSpide {
 			System.out.println("option:");
 			System.out.println("       -c <ini file> : config file.");
 			System.out.println("       -dic <path>   : segment dic path.");
+			System.out.println("       -stop         : stop.");
 			System.out.println("       -once         : once model.");
 			return;
 		}
 		//
 		String iniFileName = "";
+		boolean stop = false;
 		boolean once = false;
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-c")) {
@@ -45,6 +47,9 @@ public class WebSpide {
 				CSegment.getInstance().loadCustomDic(args[i + 1]);
 				i++;
 			}
+			else if (args[i].equals("-stop")) {
+				stop = true;
+			}
 			else if (args[i].equals("-once")) {
 				once = true;
 			}
@@ -52,7 +57,7 @@ public class WebSpide {
 		CLog.setLogger("WebSpideClient-" + new File(iniFileName).getName().replaceAll("\\..*", ""));
 		logger = CLog.getLogger();
 		//
-		logger.info("Begin [ WebSpideClient ]");
+		if (!stop) logger.info("Begin [ WebSpideClient ]");
 		//
 		try {
 			final CJobQueueConfig jobQueueConfig = new CJobQueueConfig(iniFileName);
@@ -73,8 +78,18 @@ public class WebSpide {
 					}
 					return result;
 				}
+				
+				@Override
+				public void stop() {
+					SpideEntryBase.stopAll();
+				}
 			});
-			jobService4Worker.run(once);
+			if (!stop) {
+				jobService4Worker.run(once);
+			}
+			else {
+				jobService4Worker.stop();
+			}
 		}
 		catch (Exception e) {
 			logger.error(e.getMessage(), e);

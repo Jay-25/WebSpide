@@ -37,11 +37,11 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
  * @version V1.0
  */
 public class CAdvanceSpideExplorer {
-
+	
 	private static Logger           logger        = CLog.getLogger();
 	private HashMap<String, String> header        = new HashMap<String, String>();
 	private CSpideExplorer          spideExplorer = null;
-
+	
 	public CAdvanceSpideExplorer(BrowserVersion explorer) {
 		spideExplorer = CSpideExplorerPool.getInstance(BrowserVersion.CHROME).getSpideExplorer();
 		//
@@ -50,35 +50,35 @@ public class CAdvanceSpideExplorer {
 		header.put("Accept-Language", "zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4");
 		header.put("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.108 Safari/537.36");
 	}
-
+	
 	@Override
 	protected void finalize() throws Throwable {
 		close();
 		super.finalize();
 	}
-
+	
 	public void close() {
 		header.clear();
 		header = null;
 		spideExplorer.close();
 	}
-
+	
 	public CSpideExplorer getExplorer() {
 		return spideExplorer;
 	}
-
+	
 	public void setHeader(String filedName, String value) {
 		header.put(filedName, value);
 	}
-
+	
 	public HtmlPage getPage(URL url) {
 		return getPage(url, 0, 0);
 	}
-
+	
 	public HtmlPage getPage(String url) {
 		return getPage(url, 0, 0);
 	}
-
+	
 	public HtmlPage getPage(URL url, int retry, long ms) {
 		HtmlPage page = null;
 		WebRequest request = null;
@@ -121,19 +121,19 @@ public class CAdvanceSpideExplorer {
 		url = null;
 		return page;
 	}
-
+	
 	public HtmlPage getPage(String urlstr, int retry, long ms) {
 		URL url = null;
 		try {
 			url = new URL(urlstr);
-			return getPage(url, 0, 0);
+			return getPage(url, retry, ms);
 		}
 		catch (MalformedURLException e) {
 			logger.warn(e.getMessage(), e);
 		}
 		return null;
 	}
-
+	
 	private String getGMT() {
 		SimpleDateFormat sdf = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss 'GMT'", Locale.US);
 		sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
