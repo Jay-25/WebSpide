@@ -12,16 +12,21 @@ import Log.CLog;
 
 public class CJobThread extends Thread {
 	
+	static public interface TimeoutCallback {
+		
+		void run();
+	}
+	
 	private final static Logger logger = CLog.getLogger();
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public CJobThread(Callable arg0, String arg1, int retry, long wait, long timeout) {
+	public CJobThread(Callable callable, String arg1, int retry, long wait, long timeout, TimeoutCallback timeoutCallback) {
 		super(new Runnable() {
 			
 			@Override
 			public void run() {
 				int retryTimes = retry;
-				FutureTask<Object> task = new FutureTask<Object>(arg0);
+				FutureTask<Object> task = new FutureTask<Object>(callable);
 				while (retryTimes-- > 0) {
 					Thread thread = new Thread(task, arg1 + "-1");
 					thread.start();
@@ -30,8 +35,21 @@ public class CJobThread extends Thread {
 						thread = null;
 						break;
 					}
-					catch (InterruptedException | ExecutionException | TimeoutException e) {
+					catch (InterruptedException | ExecutionException e) {
 						if (retryTimes == 0) {
+							logger.error(e.getMessage(), e);
+						}
+						else {
+							try {
+								Thread.sleep(wait);
+							}
+							catch (InterruptedException e1) {
+							}
+						}
+					}
+					catch (TimeoutException e) {
+						if (retryTimes <= 0) {
+							if (timeoutCallback != null) timeoutCallback.run();
 							logger.error(e.getMessage(), e);
 						}
 						else {
@@ -50,7 +68,7 @@ public class CJobThread extends Thread {
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public CJobThread(Callable arg0, int retry, long wait, long timeout) {
+	public CJobThread(Callable arg0, int retry, long wait, long timeout, TimeoutCallback timeoutCallback) {
 		super(new Runnable() {
 			
 			@Override
@@ -65,8 +83,21 @@ public class CJobThread extends Thread {
 						thread = null;
 						break;
 					}
-					catch (InterruptedException | ExecutionException | TimeoutException e) {
+					catch (InterruptedException | ExecutionException e) {
 						if (retryTimes == 0) {
+							logger.error(e.getMessage(), e);
+						}
+						else {
+							try {
+								Thread.sleep(wait);
+							}
+							catch (InterruptedException e1) {
+							}
+						}
+					}
+					catch (TimeoutException e) {
+						if (retryTimes == 0) {
+							if (timeoutCallback != null) timeoutCallback.run();
 							logger.error(e.getMessage(), e);
 						}
 						else {
@@ -85,7 +116,7 @@ public class CJobThread extends Thread {
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public CJobThread(Callable arg0, String arg1, long timeout) {
+	public CJobThread(Callable arg0, String arg1, long timeout, TimeoutCallback timeoutCallback) {
 		super(new Runnable() {
 			
 			@Override
@@ -96,8 +127,11 @@ public class CJobThread extends Thread {
 				try {
 					task.get(timeout, TimeUnit.SECONDS);
 				}
-				catch (InterruptedException | ExecutionException | TimeoutException e) {
+				catch (InterruptedException | ExecutionException e) {
 					logger.error(e.getMessage(), e);
+				}
+				catch (TimeoutException e) {
+					if (timeoutCallback != null) timeoutCallback.run();
 				}
 				task = null;
 				thread = null;
@@ -106,7 +140,7 @@ public class CJobThread extends Thread {
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public CJobThread(Callable arg0, long timeout) {
+	public CJobThread(Callable arg0, long timeout, TimeoutCallback timeoutCallback) {
 		super(new Runnable() {
 			
 			@Override
@@ -117,8 +151,11 @@ public class CJobThread extends Thread {
 				try {
 					task.get(timeout, TimeUnit.SECONDS);
 				}
-				catch (InterruptedException | ExecutionException | TimeoutException e) {
+				catch (InterruptedException | ExecutionException e) {
 					logger.error(e.getMessage(), e);
+				}
+				catch (TimeoutException e) {
+					if (timeoutCallback != null) timeoutCallback.run();
 				}
 				task = null;
 				thread = null;

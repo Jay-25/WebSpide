@@ -156,7 +156,13 @@ public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 							return null;
 						}
 					}, "Trd-" + getClass().getName() + "-run.FutureTask", paras.spideConfig.getAttempt(), 3 * 1000, paras.spideConfig
-					                .getTimeOut()).start();
+					                .getTimeOut(), new CJobThread.TimeoutCallback() {
+						
+						@Override
+						public void run() {
+							jobCounter.increment();
+						}
+					}).start();
 				}
 				links.clear();
 				links = null;
@@ -180,7 +186,13 @@ public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 						return null;
 					}
 				}, "Trd-" + getClass().getName() + "-run.default", paras.spideConfig.getAttempt(), 3 * 1000, paras.spideConfig
-				                .getTimeOut()).start();
+				                .getTimeOut(), new CJobThread.TimeoutCallback() {
+					
+					@Override
+					public void run() {
+						jobCounter.increment();
+					}
+				}).start();
 				while (!jobCounter.jobIsRunable() && !isStop && !isStopAll) {
 					sleep(50);
 				}
