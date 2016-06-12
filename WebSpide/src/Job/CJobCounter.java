@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class CJobCounter {
 	
-	private final AtomicLong maxNum       = new AtomicLong(0);
+	private final AtomicLong maxNum       = new AtomicLong(1);
 	private final AtomicLong jobNum       = new AtomicLong(0);
 	private final AtomicLong lastQueueLen = new AtomicLong(0);
 	

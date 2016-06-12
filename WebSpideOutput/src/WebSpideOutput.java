@@ -159,7 +159,7 @@ public class WebSpideOutput {
 						}
 					}
 				}
-				Thread.sleep(10);
+				Thread.sleep(100);
 			}
 			catch (Exception e) {
 				logger.error(e.getMessage(), e);

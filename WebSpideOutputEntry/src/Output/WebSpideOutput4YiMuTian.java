@@ -94,8 +94,22 @@ public class WebSpideOutput4YiMuTian extends CSpideOutput {
 	
 	private void openDB() throws InstantiationException, IllegalAccessException,
 	                ClassNotFoundException, SQLException {
-		Class.forName(driver).newInstance();
-		con = DriverManager.getConnection(url + dbname, user, password);
+		int retry = 3;
+		while (retry-- > 0) {
+			try {
+				Class.forName(driver).newInstance();
+				con = DriverManager.getConnection(url + dbname, user, password);
+				break;
+			}
+			catch (Exception e) {
+				if (retry <= 0) throw (e);
+				try {
+					Thread.sleep(10 * 1000);
+				}
+				catch (InterruptedException e1) {
+				}
+			}
+		}
 	}
 	
 	private void closeDB() {
