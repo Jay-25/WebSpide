@@ -53,7 +53,7 @@ public class CJobQueue {
 	private void init() {
 		logger.info("Init JedisPool [" + queueName + "]");
 		if (pool != null && !pool.isClosed()) pool.close();
-		pool = new JedisPool(config.getJedisPoolConfig(), config.getRedisIP(), config.getRedisPort());
+		pool = new JedisPool(config.getJedisPoolConfig(), config.getRedisIP(), config.getRedisPort(), config.getTimeout());
 	}
 	
 	public void setQueueName(String queueName) {
