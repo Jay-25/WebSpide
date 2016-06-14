@@ -156,6 +156,7 @@ public class C5i5j extends SpideEntryBase {
 		}
 		//
 		dataSet.print();
+		sleep(250);
 	}
 	
 	@SuppressWarnings("unchecked")

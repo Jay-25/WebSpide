@@ -156,6 +156,7 @@ public class Csoufun extends SpideEntryBase {
 		}
 		//
 		dataSet.print();
+		sleep(250);
 	}
 	
 	@SuppressWarnings("unchecked")

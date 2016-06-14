@@ -83,6 +83,7 @@ public class CAdvanceSpideExplorer {
 		HtmlPage page = null;
 		WebRequest request = null;
 		WebResponse response = null;
+		logger.info("getPage(" + url.toString() + ") => Begin");
 		while (retry >= 0) {
 			retry--;
 			try {
@@ -104,7 +105,7 @@ public class CAdvanceSpideExplorer {
 					CSpideExplorer.sleep(ms);
 				}
 				else {
-					logger.info("getPage(" + url.toString() + ")");
+					logger.info("getPage(" + url.toString() + ") => End");
 					request = null;
 					response = null;
 					break;

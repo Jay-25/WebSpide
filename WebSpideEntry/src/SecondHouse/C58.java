@@ -160,6 +160,7 @@ public class C58 extends SpideEntryBase {
 		}
 		//
 		dataSet.print();
+		sleep(250);
 	}
 	
 	@SuppressWarnings("unchecked")

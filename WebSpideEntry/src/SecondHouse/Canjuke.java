@@ -156,6 +156,7 @@ public class Canjuke extends SpideEntryBase {
 		}
 		//
 		dataSet.print();
+		sleep(250);
 	}
 	
 	@SuppressWarnings("unchecked")

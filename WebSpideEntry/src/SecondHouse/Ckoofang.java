@@ -156,6 +156,7 @@ public class Ckoofang extends SpideEntryBase {
 		}
 		//
 		dataSet.print();
+		sleep(250);
 	}
 	
 	@SuppressWarnings("unchecked")
