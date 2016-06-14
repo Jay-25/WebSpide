@@ -1,5 +1,7 @@
 package SpiderBase;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -28,6 +30,7 @@ import Log.CLog;
  */
 public class CSpideDataStruct {
 	
+	private static SimpleDateFormat        dateFormat     = new SimpleDateFormat("yyyy-M-dd HH:mm:ss");
 	private static Logger                  logger         = CLog.getLogger();
 	private final HashMap<String, Object>  dataDefaultSet = new HashMap<String, Object>();
 	private final HashMap<String, String>  dataTypeSet    = new HashMap<String, String>();
@@ -215,7 +218,10 @@ public class CSpideDataStruct {
 			Object dataValue = entry.getValue();
 			str.append(dataName + " : " + dataValue + "\n");
 		}
-		str.append("\n-----------\n");
+		Date now = new Date();
+		String timestamp = dateFormat.format(now);
+		now = null;
+		str.append("\n-----<" + timestamp + ">-----\n");
 		System.out.println(str.toString());
 		str = null;
 	}
