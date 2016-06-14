@@ -38,6 +38,7 @@ public class WebSpideServer {
 			System.out.println("java -jar WebSpideServer.jar <-c inifile> [option]");
 			System.out.println("option:");
 			System.out.println("       -c <ini file> : config file.");
+			System.out.println("       -rand         : random queue.");
 			System.out.println("       -keep         : keep on queue.");
 			System.out.println("       -force        : force to ignore spided and restart.");
 			System.out.println("       -stop         : stop server.");
@@ -46,6 +47,7 @@ public class WebSpideServer {
 		}
 		//
 		String iniFileName = "";
+		boolean rand = false;
 		boolean keep = false;
 		boolean force = false;
 		boolean stop = false;
@@ -54,6 +56,9 @@ public class WebSpideServer {
 			if (args[i].equals("-c")) {
 				iniFileName = args[i + 1];
 				i++;
+			}
+			else if (args[i].equals("-rand")) {
+				rand = true;
 			}
 			else if (args[i].equals("-keep")) {
 				keep = true;
@@ -85,7 +90,7 @@ public class WebSpideServer {
 		}
 		else {
 			jobService4Server.setOnceModel(once);
-			jobService4Server.run(!keep);
+			jobService4Server.run(rand, !keep);
 		}
 	}
 }

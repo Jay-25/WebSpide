@@ -18,6 +18,7 @@ import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -58,7 +59,23 @@ public class CJobService4Server {
 		this.isOnceModel = isOnceModel;
 	}
 	
-	public void run(boolean force) {
+	private ArrayList<Integer> getDiffNO(int n) {// 生成 [0-n) 个不重复的随机数
+		ArrayList<Integer> list = new ArrayList<Integer>();
+		Random rand = new Random();
+		boolean[] bool = new boolean[n];
+		int num = 0;
+		for (int i = 0; i < n; i++) {
+			do {
+				num = rand.nextInt(n);// 如果产生的数相同继续循环
+			} while (bool[num]);
+			bool[num] = true;
+			list.add(num);
+		}
+		rand = null;
+		return list;
+	}
+	
+	public void run(boolean randomQueue, boolean force) {
 		if (force) {
 			jobQueue.empty(CJobQueue.QUEUE_INDEX_JOB);
 			jobQueue.empty(CJobQueue.QUEUE_INDEX_RESULT);
@@ -126,9 +143,18 @@ public class CJobService4Server {
 							}
 						}
 					}
-					String[] jobArray = new String[jobList.size()];
-					jobQueue.addData(CJobQueue.QUEUE_INDEX_JOB, jobList.toArray(jobArray));
-					jobArray = null;
+					if (!randomQueue) {
+						String[] jobArray = new String[jobList.size()];
+						jobQueue.addData(CJobQueue.QUEUE_INDEX_JOB, jobList.toArray(jobArray));
+						jobArray = null;
+					}
+					else {
+						ArrayList<Integer> list = getDiffNO(jobList.size());
+						for (int i : list) {
+							jobQueue.addData(CJobQueue.QUEUE_INDEX_JOB, jobList.get(i));
+						}
+						list = null;
+					}
 					jobList = null;
 					System.out.println("Jobs Number: " + jobQueue.length(CJobQueue.QUEUE_INDEX_JOB));
 					System.out.println();
