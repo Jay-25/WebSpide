@@ -329,7 +329,7 @@ public class WebSpideOutput4CaiShiChang extends CSpideOutput {
 								if (!isPrint && ++showCounter % 100 == 0) {
 									System.out.println("--- < " + timestamp + ", OK: " + numOk + ", Exist: " + numExit + ", Error: " + numError + " > ---");
 								}
-								Thread.sleep(50);
+								Thread.sleep(1000);
 							}
 							catch (InterruptedException e) {
 							}

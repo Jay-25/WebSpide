@@ -137,7 +137,8 @@ public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 				for (final Object linkItem : links) {
 					if (linkItem == null) continue;
 					while (!jobCounter.jobIsRunable() && !isStop && !isStopAll) {
-						sleep(50);
+						sleep(5000);
+						System.out.println("SpideEnterBase...");
 					}
 					if (isStop || isStopAll) break;
 					//

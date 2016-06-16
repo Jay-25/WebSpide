@@ -102,7 +102,7 @@ public class CJobService4Server {
 				while (jobQueue.jedisGet(CJobQueue.MDB_INDEX_SERVER, key_Server_Running).equals("1")) {
 					while (jobQueue.jedisGet(CJobQueue.MDB_INDEX_SERVER, key_Server_Running).equals("1")
 					                && jobQueue.length(CJobQueue.QUEUE_INDEX_JOB) > 0) {
-						sleep(50);
+						sleep(1000);
 					}
 					if (!jobQueue.jedisGet(CJobQueue.MDB_INDEX_SERVER, key_Server_Running).equals("1")) {
 						logger.info("--- Server End ---");

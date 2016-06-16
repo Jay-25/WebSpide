@@ -72,7 +72,8 @@ public class CJobService4Worker {
 					try {
 						while (queue.jedisGet(CJobQueue.MDB_INDEX_SERVER, key_Client_Running).equals("1")
 						                && (queue.length(CJobQueue.QUEUE_INDEX_JOB) <= 0 || !jobCounter.jobIsRunable())) {
-							sleep(50);
+							sleep(5000);
+							System.out.println("JobService4Worker...");
 							if (waiting4Beg && once && queue.length(CJobQueue.QUEUE_INDEX_JOB) <= 0) return;
 						}
 						if (!queue.jedisGet(CJobQueue.MDB_INDEX_SERVER, key_Client_Running).equals("1")) {

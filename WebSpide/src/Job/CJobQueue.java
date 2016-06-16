@@ -173,6 +173,7 @@ public class CJobQueue {
 			}
 		}
 		logger.error("Jedis Get Error!");
+		//System.exit(0);
 		return null;
 	}
 	
