@@ -48,48 +48,96 @@ public class WebSpideOutput4YiMuTian extends CSpideOutput {
 		STATUS_OK, STATUS_ERROR, STATUS_EXIST
 	}
 	
-	private String     dataPath = null;
-	private String     driver   = null;
-	private String     url      = null;
-	private String     dbname   = null;
-	private String     user     = null;
-	private String     password = null;
-	private Connection con      = null;
+	private class Resource {
+		
+		private String          iniFileName    = "";
+		private boolean         test           = false;
+		private boolean         stop           = false;
+		private String          dataPath       = null;
+		//
+		private String          driver         = null;
+		private String          url            = null;
+		private String          dbname         = null;
+		private String          user           = null;
+		private String          password       = null;
+		//
+		private Connection      con            = null;
+		private CJobQueueConfig jobQueueConfig = null;
+		private CJobQueue       outputQueue    = null;
+	}
+	
+	private Resource resource = new Resource();
 	
 	public WebSpideOutput4YiMuTian() {
 	}
 	
-	private void init(String configFile) throws InstantiationException, IllegalAccessException,
+	private boolean init(String[] args) throws InstantiationException, IllegalAccessException,
 	                ClassNotFoundException, SQLException {
-		File iniFile = new File(configFile);
-		IniFile ini = new BasicIniFile(false);// 大小写不敏感
-		IniFileReader reader = new IniFileReader(ini, iniFile);
-		try {
-			reader.read();
-			for (int i = 0; i < ini.getNumberOfSections(); i++) {
-				IniSection sec = ini.getSection(i);
-				if (sec.getName().equals("DB")) {
-					driver = sec.getItem("driver").getValue();
-					url = sec.getItem("url").getValue();
-					dbname = sec.getItem("dbname").getValue();
-					user = sec.getItem("user").getValue();
-					password = sec.getItem("password").getValue();
-				}
-				else if (sec.getName().equals("Data")) {
-					dataPath = sec.getItem("path").getValue();
-				}
-			}
-		}
-		catch (Exception e) {
-			logger.warn(e.getMessage(), e);
-		}
-		finally {
-			reader = null;
-			ini = null;
-			iniFile = null;
+		if (args.length <= 0) {
+			CSpideVersion.printVersion(clzName);
+			System.out.println("java -jar " + clzName + ".jar <-c inifile>");
+			System.out.println("option:");
+			System.out.println("       -c <ini file> : config file.");
+			System.out.println("       -test         : for test.");
+			System.out.println("       -stop         : stop server.");
+			System.out.println("       -quiet        : no print.");
+			return false;
 		}
 		//
-		openDB();
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].equals("-c")) {
+				resource.iniFileName = args[i + 1];
+				i++;
+			}
+			else if (args[i].equals("-test")) {
+				resource.test = true;
+			}
+			else if (args[i].equals("-stop")) {
+				resource.stop = true;
+			}
+			else if (args[i].equals("-quiet")) {
+				isPrint = false;
+			}
+		}
+		if (!resource.stop) logger.info("Begin [ " + clzName + " ]" + (resource.test ? "(test)" : ""));
+		//
+		if (resource.con == null && resource.outputQueue == null) {
+			File iniFile = new File(resource.iniFileName);
+			IniFile ini = new BasicIniFile(false);// 大小写不敏感
+			IniFileReader reader = new IniFileReader(ini, iniFile);
+			try {
+				reader.read();
+				for (int i = 0; i < ini.getNumberOfSections(); i++) {
+					IniSection sec = ini.getSection(i);
+					if (sec.getName().equals("DB")) {
+						resource.driver = sec.getItem("driver").getValue();
+						resource.url = sec.getItem("url").getValue();
+						resource.dbname = sec.getItem("dbname").getValue();
+						resource.user = sec.getItem("user").getValue();
+						resource.password = sec.getItem("password").getValue();
+					}
+					else if (sec.getName().equals("Data")) {
+						resource.dataPath = sec.getItem("path").getValue();
+					}
+				}
+			}
+			catch (Exception e) {
+				logger.warn(e.getMessage(), e);
+			}
+			finally {
+				reader = null;
+				ini = null;
+				iniFile = null;
+			}
+			//
+			openDB();
+			//
+			resource.jobQueueConfig = new CJobQueueConfig(resource.iniFileName);
+			resource.outputQueue = new CJobQueue(resource.jobQueueConfig);
+			resource.outputQueue.setQueueName(resource.jobQueueConfig.getQueueName() + "-OUTPUT");
+		}
+		//
+		return true;
 	}
 	
 	private void openDB() throws InstantiationException, IllegalAccessException,
@@ -97,8 +145,8 @@ public class WebSpideOutput4YiMuTian extends CSpideOutput {
 		int retry = 3;
 		while (retry-- > 0) {
 			try {
-				Class.forName(driver).newInstance();
-				con = DriverManager.getConnection(url + dbname, user, password);
+				Class.forName(resource.driver).newInstance();
+				resource.con = DriverManager.getConnection(resource.url + resource.dbname, resource.user, resource.password);
 				break;
 			}
 			catch (Exception e) {
@@ -114,16 +162,17 @@ public class WebSpideOutput4YiMuTian extends CSpideOutput {
 	
 	private void closeDB() {
 		try {
-			con.close();
+			resource.con.close();
 		}
 		catch (Exception e) {
 		}
-		con = null;
+		resource.con = null;
 	}
 	
 	@Override
 	protected void finalize() throws Throwable {
 		closeDB();
+		resource = null;
 		super.finalize();
 	}
 	
@@ -143,7 +192,7 @@ public class WebSpideOutput4YiMuTian extends CSpideOutput {
 					String sql_insert = "INSERT INTO public.tab_yimutian (update_time,market,type,name,avgprice,maxprice,minprice,unite) VALUES "
 					                + "(?::TIMESTAMP,?,?,?,to_number(?,'999999.999'),to_number(?,'999999.999'),to_number(?,'999999.999'),?)";
 					//
-					PreparedStatement st = con.prepareStatement(sql_insert);
+					PreparedStatement st = resource.con.prepareStatement(sql_insert);
 					st.setString(1, datajson.query("./updateTime").toString());
 					st.setString(2, decode(datajson.query("./market").toString().trim(), ""));
 					st.setString(3, decode(datajson.query("./type").toString().trim(), ""));
@@ -195,7 +244,7 @@ public class WebSpideOutput4YiMuTian extends CSpideOutput {
 			CJson datajson = new CJson(data);
 			datajson.process();
 			//
-			String path = dataPath + File.separator + "CaiJia";
+			String path = resource.dataPath + File.separator + "CaiJia";
 			File dir = new File(path);
 			if (!dir.isDirectory()) {
 				dir.mkdirs();
@@ -232,53 +281,19 @@ public class WebSpideOutput4YiMuTian extends CSpideOutput {
 	
 	@Override
 	public void output(String[] args) {
-		if (args.length <= 0) {
-			CSpideVersion.printVersion(clzName);
-			System.out.println("java -jar " + clzName + ".jar <-c inifile>");
-			System.out.println("option:");
-			System.out.println("       -c <ini file> : config file.");
-			System.out.println("       -test         : for test.");
-			System.out.println("       -stop         : stop server.");
-			System.out.println("       -quiet        : no print.");
-			return;
-		}
-		//
-		String iniFileName = "";
-		boolean test = false;
-		boolean stop = false;
-		for (int i = 0; i < args.length; i++) {
-			if (args[i].equals("-c")) {
-				iniFileName = args[i + 1];
-				i++;
-			}
-			else if (args[i].equals("-test")) {
-				test = true;
-			}
-			else if (args[i].equals("-stop")) {
-				stop = true;
-			}
-			else if (args[i].equals("-quiet")) {
-				isPrint = false;
-			}
-		}
-		if (!stop) logger.info("Begin [ " + clzName + " ]" + (test ? "(test)" : ""));
-		//
 		try {
-			init(iniFileName);
+			if (!init(args)) return;
 		}
 		catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			return;
 		}
 		//
-		CJobQueueConfig jobQueueConfig = new CJobQueueConfig(iniFileName);
-		final CJobQueue outputQueue = new CJobQueue(jobQueueConfig);
-		outputQueue.setQueueName(jobQueueConfig.getQueueName() + "-OUTPUT");
-		if (stop) {
-			outputQueue.jedisSet(CJobQueue.MDB_INDEX_SERVER, key_Outputer_Running, "0");
+		if (resource.stop) {
+			resource.outputQueue.jedisSet(CJobQueue.MDB_INDEX_SERVER, key_Outputer_Running, "0");
 		}
 		else {
-			final boolean finalTest = test;
+			final boolean finalTest = resource.test;
 			new Thread(new Runnable() {
 				
 				@Override
@@ -289,30 +304,33 @@ public class WebSpideOutput4YiMuTian extends CSpideOutput {
 					long numExit = 0;
 					long numError = 0;
 					long showCounter = 0;
-					outputQueue.jedisSet(CJobQueue.MDB_INDEX_SERVER, key_Outputer_Running, "1");
-					while (outputQueue.jedisGet(CJobQueue.MDB_INDEX_SERVER, key_Outputer_Running).equals("1")) {
-						while (outputQueue.jedisGet(CJobQueue.MDB_INDEX_SERVER, key_Outputer_Running).equals("1")
-						                && outputQueue.length(CJobQueue.QUEUE_INDEX_JOB) <= 0) {
+					resource.outputQueue.jedisSet(CJobQueue.MDB_INDEX_SERVER, key_Outputer_Running, "1");
+					while (resource.outputQueue.jedisGet(CJobQueue.MDB_INDEX_SERVER, key_Outputer_Running).equals("1")) {
+						while (resource.outputQueue.jedisGet(CJobQueue.MDB_INDEX_SERVER, key_Outputer_Running).equals("1")
+						                && resource.outputQueue.length(CJobQueue.QUEUE_INDEX_JOB) <= 0) {
 							try {
 								if (!isPrint && ++showCounter % 100 == 0) {
-									System.out.println("--- < " + timestamp + ", OK: " + numOk + ", Exist: " + numExit + ", Error: " + numError + " > ---");
+									Date now = new Date();
+									timestamp = dateFormat.format(now);
+									now = null;
+									System.out.println("--- < " + clzName + ", " + timestamp + ", OK: " + numOk + ", Exist: " + numExit + ", Error: " + numError + " > ---");
 								}
 								Thread.sleep(50);
 							}
 							catch (InterruptedException e) {
 							}
 						}
-						if (!outputQueue.jedisGet(CJobQueue.MDB_INDEX_SERVER, key_Outputer_Running).equals("1")) {
+						if (!resource.outputQueue.jedisGet(CJobQueue.MDB_INDEX_SERVER, key_Outputer_Running).equals("1")) {
 							logger.info("End [ " + clzName + " ]");
 							return;
 						}
 						//
 						try {
 							WebSpideOutput4YiMuTian.Status status = WebSpideOutput4YiMuTian.Status.STATUS_OK;
-							String strJson = outputQueue
+							String strJson = resource.outputQueue
 							                .getData(WebSpideOutput4YiMuTian.QUEUE_INDEX_OUTPUT);
 							if (strJson == null) continue;
-							status = insert(outputQueue, strJson, finalTest);
+							status = insert(resource.outputQueue, strJson, finalTest);
 							if (status == WebSpideOutput4YiMuTian.Status.STATUS_OK) {
 								numOk++;
 							}
@@ -322,12 +340,6 @@ public class WebSpideOutput4YiMuTian extends CSpideOutput {
 							else if (status == WebSpideOutput4YiMuTian.Status.STATUS_ERROR) {
 								numError++;
 								saveFile(strJson);
-							}
-							Date now = new Date();
-							timestamp = dateFormat.format(now);
-							now = null;
-							if (isPrint) {
-								System.out.println("--- < " + timestamp + ", OK: " + numOk + ", Exist: " + numExit + ", Error: " + numError + " > ---");
 							}
 						}
 						catch (Exception e) {
