@@ -36,6 +36,10 @@ public class CJobThread extends Thread {
 						break;
 					}
 					catch (InterruptedException | ExecutionException e) {
+						if (e.getMessage().equals("java.lang.OutOfMemoryError")) {
+							logger.error(e.getMessage(), e);
+							System.exit(0);
+						}
 						if (retryTimes == 0) {
 							logger.error(e.getMessage(), e);
 						}
