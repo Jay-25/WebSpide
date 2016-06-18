@@ -71,6 +71,11 @@ public class WebSpideOutput4YiMuTian extends CSpideOutput {
 	public WebSpideOutput4YiMuTian() {
 	}
 	
+	@Override
+	public String getName() {
+		return clzName;
+	}
+	
 	private boolean init(String[] args) throws InstantiationException, IllegalAccessException,
 	                ClassNotFoundException, SQLException {
 		if (args.length <= 0) {
@@ -83,6 +88,9 @@ public class WebSpideOutput4YiMuTian extends CSpideOutput {
 			System.out.println("       -quiet        : no print.");
 			return false;
 		}
+		//
+		resource.test = false;
+		resource.stop = false;
 		//
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-c")) {
@@ -99,7 +107,6 @@ public class WebSpideOutput4YiMuTian extends CSpideOutput {
 				isPrint = false;
 			}
 		}
-		if (!resource.stop) logger.info("Begin [ " + clzName + " ]" + (resource.test ? "(test)" : ""));
 		//
 		if (resource.con == null && resource.outputQueue == null) {
 			File iniFile = new File(resource.iniFileName);
@@ -290,9 +297,11 @@ public class WebSpideOutput4YiMuTian extends CSpideOutput {
 		}
 		//
 		if (resource.stop) {
+			logger.info("Begin [ " + clzName + " ] Stop.");
 			resource.outputQueue.jedisSet(CJobQueue.MDB_INDEX_SERVER, key_Outputer_Running, "0");
 		}
 		else {
+			logger.info("Begin [ " + clzName + " ]" + (resource.test ? "(test)" : ""));
 			final boolean finalTest = resource.test;
 			new Thread(new Runnable() {
 				

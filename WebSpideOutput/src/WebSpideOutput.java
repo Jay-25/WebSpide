@@ -32,9 +32,13 @@ class OutputEntry {
 		jobOutputParas4Stop[2] = "-stop";
 	}
 	
-	public boolean hasData() {
-		boolean result = outputQueue.length(CJobQueue.QUEUE_INDEX_JOB) > 0;
-		if (result) {
+	public String getName() {
+		return spideOutput.getName();
+	}
+	
+	public long hasData() {
+		long result = outputQueue.length(CJobQueue.QUEUE_INDEX_JOB);
+		if (result > 0) {
 			updateTimestamp();
 		}
 		return result;
@@ -147,15 +151,18 @@ public class WebSpideOutput {
 		iniFileNames = null;
 		//
 		logger.info("Watching... [timeout=" + (timeoutMs / 1000) + " sec.]");
+		long counter = 0;
 		while (true) {
 			try {
 				for (OutputEntry outputEntry : outputEntries) {
-					if (outputEntry.hasData()) {
+					if (outputEntry.hasData() > 0) {
 						if (!outputEntry.isRunning()) outputEntry.start();
 					}
 					else {
 						if (outputEntry.isTimeout(timeoutMs)) {
-							if (outputEntry.isRunning()) outputEntry.stop();
+							if (outputEntry.isRunning()) {
+								outputEntry.stop();
+							}
 						}
 					}
 				}
