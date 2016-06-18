@@ -344,7 +344,7 @@ public class WebSpideOutput4House extends CSpideOutput {
 		}
 		//
 		if (resource.stop) {
-			logger.info("Begin [ " + clzName + " ] Stop.");
+			logger.info("Stop [ " + clzName + " ]");
 			resource.outputQueue.jedisSet(CJobQueue.MDB_INDEX_SERVER, key_Outputer_Running, "0");
 		}
 		else {
