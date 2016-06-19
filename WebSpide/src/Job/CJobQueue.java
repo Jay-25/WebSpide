@@ -45,7 +45,7 @@ public class CJobQueue {
 	
 	@Override
 	protected void finalize() throws Throwable {
-		logger.error("JedisPool Fin [" + queueName + "]");
+		logger.info("JedisPool Fin [" + queueName + "]");
 		pool.close();
 		super.finalize();
 	}

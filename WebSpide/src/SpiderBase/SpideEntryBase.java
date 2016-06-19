@@ -157,10 +157,10 @@ public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 							return null;
 						}
 					}, "Trd-" + getClass().getName() + "-run.FutureTask", paras.spideConfig.getAttempt(), 3 * 1000, paras.spideConfig
-					                .getTimeOut(), new CJobThread.TimeoutCallback() {
+					                .getTimeOut(), new CJobThread.ExceptionCallback() {
 						
 						@Override
-						public void run() {
+						public void run(Exception e) {
 							jobCounter.increment();
 						}
 					}).start();
@@ -187,10 +187,10 @@ public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 						return null;
 					}
 				}, "Trd-" + getClass().getName() + "-run.default", paras.spideConfig.getAttempt(), 3 * 1000, paras.spideConfig
-				                .getTimeOut(), new CJobThread.TimeoutCallback() {
+				                .getTimeOut(), new CJobThread.ExceptionCallback() {
 					
 					@Override
-					public void run() {
+					public void run(Exception e) {
 						jobCounter.increment();
 					}
 				}).start();

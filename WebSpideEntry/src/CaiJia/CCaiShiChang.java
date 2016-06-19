@@ -138,10 +138,10 @@ public class CCaiShiChang extends SpideEntryBase {
 							jobCounter.increment();
 							return null;
 						}
-					}, "Trd-" + getClass().getName() + "-CGetPrice", paras.spideConfig.getTimeOut(), new CJobThread.TimeoutCallback() {
+					}, "Trd-" + getClass().getName() + "-CGetPrice", paras.spideConfig.getTimeOut(), new CJobThread.ExceptionCallback() {
 						
 						@Override
-						public void run() {
+						public void run(Exception e) {
 							jobCounter.increment();
 						}
 					})
@@ -214,10 +214,10 @@ public class CCaiShiChang extends SpideEntryBase {
 								jobCounter.increment();
 								return null;
 							}
-						}, "Trd-" + getClass().getName() + "-CGetDistrict", paras.spideConfig.getTimeOut(), new CJobThread.TimeoutCallback() {
+						}, "Trd-" + getClass().getName() + "-CGetDistrict", paras.spideConfig.getTimeOut(), new CJobThread.ExceptionCallback() {
 							
 							@Override
-							public void run() {
+							public void run(Exception e) {
 								jobCounter.increment();
 							}
 						})

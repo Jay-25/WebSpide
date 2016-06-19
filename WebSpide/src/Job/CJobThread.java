@@ -12,15 +12,15 @@ import Log.CLog;
 
 public class CJobThread extends Thread {
 	
-	static public interface TimeoutCallback {
+	static public interface ExceptionCallback {
 		
-		void run();
+		void run(Exception e);
 	}
 	
 	private final static Logger logger = CLog.getLogger();
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public CJobThread(Callable callable, String arg1, int retry, long wait, long timeout, TimeoutCallback timeoutCallback) {
+	public CJobThread(Callable callable, String arg1, int retry, long wait, long timeout, ExceptionCallback exceptionCallback) {
 		super(new Runnable() {
 			
 			@Override
@@ -35,26 +35,14 @@ public class CJobThread extends Thread {
 						thread = null;
 						break;
 					}
-					catch (InterruptedException | ExecutionException e) {
+					catch (InterruptedException | ExecutionException | TimeoutException e) {
 						if (e.getMessage().equals("java.lang.OutOfMemoryError")) {
 							logger.error(e.getMessage(), e);
 							System.exit(0);
 						}
 						if (retryTimes == 0) {
 							logger.error(e.getMessage(), e);
-						}
-						else {
-							try {
-								Thread.sleep(wait);
-							}
-							catch (InterruptedException e1) {
-							}
-						}
-					}
-					catch (TimeoutException e) {
-						if (retryTimes <= 0) {
-							if (timeoutCallback != null) timeoutCallback.run();
-							logger.error(e.getMessage(), e);
+							if (exceptionCallback != null) exceptionCallback.run(e);
 						}
 						else {
 							try {
@@ -72,7 +60,7 @@ public class CJobThread extends Thread {
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public CJobThread(Callable arg0, int retry, long wait, long timeout, TimeoutCallback timeoutCallback) {
+	public CJobThread(Callable arg0, int retry, long wait, long timeout, ExceptionCallback exceptionCallback) {
 		super(new Runnable() {
 			
 			@Override
@@ -87,22 +75,14 @@ public class CJobThread extends Thread {
 						thread = null;
 						break;
 					}
-					catch (InterruptedException | ExecutionException e) {
+					catch (InterruptedException | ExecutionException | TimeoutException e) {
+						if (e.getMessage().equals("java.lang.OutOfMemoryError")) {
+							logger.error(e.getMessage(), e);
+							System.exit(0);
+						}
 						if (retryTimes == 0) {
 							logger.error(e.getMessage(), e);
-						}
-						else {
-							try {
-								Thread.sleep(wait);
-							}
-							catch (InterruptedException e1) {
-							}
-						}
-					}
-					catch (TimeoutException e) {
-						if (retryTimes == 0) {
-							if (timeoutCallback != null) timeoutCallback.run();
-							logger.error(e.getMessage(), e);
+							if (exceptionCallback != null) exceptionCallback.run(e);
 						}
 						else {
 							try {
@@ -120,7 +100,7 @@ public class CJobThread extends Thread {
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public CJobThread(Callable arg0, String arg1, long timeout, TimeoutCallback timeoutCallback) {
+	public CJobThread(Callable arg0, String arg1, long timeout, ExceptionCallback exceptionCallback) {
 		super(new Runnable() {
 			
 			@Override
@@ -131,11 +111,12 @@ public class CJobThread extends Thread {
 				try {
 					task.get(timeout, TimeUnit.SECONDS);
 				}
-				catch (InterruptedException | ExecutionException e) {
+				catch (InterruptedException | ExecutionException | TimeoutException e) {
 					logger.error(e.getMessage(), e);
-				}
-				catch (TimeoutException e) {
-					if (timeoutCallback != null) timeoutCallback.run();
+					if (e.getMessage().equals("java.lang.OutOfMemoryError")) {
+						System.exit(0);
+					}
+					if (exceptionCallback != null) exceptionCallback.run(e);
 				}
 				task = null;
 				thread = null;
@@ -144,7 +125,7 @@ public class CJobThread extends Thread {
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public CJobThread(Callable arg0, long timeout, TimeoutCallback timeoutCallback) {
+	public CJobThread(Callable arg0, long timeout, ExceptionCallback exceptionCallback) {
 		super(new Runnable() {
 			
 			@Override
@@ -155,11 +136,12 @@ public class CJobThread extends Thread {
 				try {
 					task.get(timeout, TimeUnit.SECONDS);
 				}
-				catch (InterruptedException | ExecutionException e) {
+				catch (InterruptedException | ExecutionException | TimeoutException e) {
 					logger.error(e.getMessage(), e);
-				}
-				catch (TimeoutException e) {
-					if (timeoutCallback != null) timeoutCallback.run();
+					if (e.getMessage().equals("java.lang.OutOfMemoryError")) {
+						System.exit(0);
+					}
+					if (exceptionCallback != null) exceptionCallback.run(e);
 				}
 				task = null;
 				thread = null;
