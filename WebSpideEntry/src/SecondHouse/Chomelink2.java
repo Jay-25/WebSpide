@@ -32,7 +32,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
  * @Create：2016-5-18 上午10:19:07
  * @version V1.0
  */
-public class Chomelink extends SpideEntryBase {
+public class Chomelink2 extends SpideEntryBase {
 	
 	private CSpideDataStruct dataSet            = null;
 	private int              spidedDuplicateNum = 0;
@@ -41,7 +41,7 @@ public class Chomelink extends SpideEntryBase {
 	private CRegexEngine     regexTable         = new CRegexEngine();
 	private CHtmlReduce      htmlReduce         = new CHtmlReduce();
 	
-	public Chomelink() {
+	public Chomelink2() {
 		loadRegexRule();
 	}
 	
@@ -134,8 +134,8 @@ public class Chomelink extends SpideEntryBase {
 		html = CHtmlTrim.replaceDBC2SBC(html);
 		html = CHtmlTrim.removeHtmlTag(html);
 		html = CHtmlTrim.trim(html);
-		html = html.replaceAll("房源标签.*", " ");
-		html = html.replaceAll(".*分享此房源", " ");
+		html = html.replaceAll("房源描述.*", " ");
+		html = html.replaceAll(".*当前房源", " ");
 		//
 		dataSet.clear();
 		dataSet.processRegex(html);

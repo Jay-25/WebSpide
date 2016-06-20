@@ -47,16 +47,16 @@ import com.gargoylesoftware.htmlunit.javascript.JavaScriptErrorListener;
  * @version V1.0
  */
 public class CSpideExplorer extends WebClient {
-
+	
 	private static final long                      serialVersionUID         = 5504977916712919939L;
 	private static Logger                          logger                   = CLog.getLogger();
 	private CSpideExplorerPool.PooledClientFactory ownerPooledClientFactory = null;
 	private static boolean                         initStatus               = false;
-
+	
 	public CSpideExplorer() throws Exception {
 		this(BrowserVersion.CHROME);
 	}
-
+	
 	public CSpideExplorer(BrowserVersion explorer) {
 		super(explorer);
 		if (!initStatus) {
@@ -69,54 +69,54 @@ public class CSpideExplorer extends WebClient {
 		}
 		initBrowser();
 	}
-
+	
 	@Override
 	protected void finalize() throws Throwable {
 		this.closeFinal();
 		super.finalize();
 	}
-
+	
 	protected void initBrowser() {
 		setJavaScriptTimeout(30 * 1000);
 		waitForBackgroundJavaScript(30 * 1000);
 		waitForBackgroundJavaScriptStartingBefore(30 * 1000);
 		//
 		setJavaScriptErrorListener(new JavaScriptErrorListener() {
-
+			
 			@Override
 			public void loadScriptError(InteractivePage arg0, URL arg1, Exception arg2) {
 				// TODO Auto-generated method stub
 			}
-
+			
 			@Override
 			public void malformedScriptURL(InteractivePage arg0, String arg1, MalformedURLException arg2) {
 				// TODO Auto-generated method stub
 			}
-
+			
 			@Override
 			public void scriptException(InteractivePage arg0, ScriptException arg1) {
 				// TODO Auto-generated method stub
 			}
-
+			
 			@Override
 			public void timeoutError(InteractivePage arg0, long arg1, long arg2) {
 				// TODO Auto-generated method stub
 			}
 		});
 		setIncorrectnessListener(new IncorrectnessListener() {
-
+			
 			@Override
 			public void notify(String arg0, Object arg1) {
 				// TODO Auto-generated method stub
 			}
 		});
 		setHTMLParserListener(new HTMLParserListener() {
-
+			
 			@Override
 			public void error(String arg0, URL arg1, String arg2, int arg3, int arg4, String arg5) {
 				// TODO Auto-generated method stub
 			}
-
+			
 			@Override
 			public void warning(String arg0, URL arg1, String arg2, int arg3, int arg4, String arg5) {
 				// TODO Auto-generated method stub
@@ -148,11 +148,11 @@ public class CSpideExplorer extends WebClient {
 		getCurrentWindow().setOuterHeight(Integer.MAX_VALUE);
 		getCurrentWindow().setOuterWidth(5000);
 	}
-
+	
 	protected void setOwnerPooledClientFactory(CSpideExplorerPool.PooledClientFactory ownerPooledClientFactory) {
 		this.ownerPooledClientFactory = ownerPooledClientFactory;
 	}
-
+	
 	@Override
 	public void close() {
 		try {
@@ -164,12 +164,12 @@ public class CSpideExplorer extends WebClient {
 			logger.warn(e.getMessage(), e);
 		}
 	}
-
+	
 	public void closeFinal() {
 		this.close();
 		super.close();
 	}
-
+	
 	public static void sleep(long ms) {
 		try {
 			Thread.sleep(ms);
@@ -177,7 +177,7 @@ public class CSpideExplorer extends WebClient {
 		catch (Exception e) {
 		}
 	}
-
+	
 	private InputStream download(String urlString) {
 		URL url = null;
 		WebRequest wrq = null;
@@ -206,7 +206,7 @@ public class CSpideExplorer extends WebClient {
 		}
 		return null;
 	}
-
+	
 	public byte[] downloadToBytes(String urlString) {
 		ByteArrayOutputStream swapStream = null;
 		InputStream inputStream = null;
@@ -239,7 +239,7 @@ public class CSpideExplorer extends WebClient {
 		}
 		return null;
 	}
-
+	
 	public String downloadToString(String urlString) {
 		InputStream inputStream = null;
 		StringBuffer sb = null;
@@ -269,7 +269,7 @@ public class CSpideExplorer extends WebClient {
 		}
 		return null;
 	}
-
+	
 	public boolean downloadToFile(String urlString, String fileName) {
 		InputStream inputStream = null;
 		File file = null;

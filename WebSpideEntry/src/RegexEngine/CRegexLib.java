@@ -225,24 +225,20 @@ class CDeepSelect implements CRegex.IDeepSelect {
 	@Override
 	public String select(String oldData, String newData) {
 		double oldws = 0.0, newws = 0.0;
-		String _oldData = oldData;
-		String _newData = newData;
 		for (int i = 0; i < ws.length; i++) {
 			if (ws[i].equals(" ")) continue;
 			double threshold = ws[i].length() * (1.0 - (double) i / ws.length);
-			if (_oldData.indexOf(ws[i]) != -1) {
+			if (oldData.indexOf(ws[i]) != -1) {
 				oldws += threshold;
-				_oldData = _oldData.replaceAll(ws[i], "");
 			}
-			if (_newData.indexOf(ws[i]) != -1) {
+			if (newData.indexOf(ws[i]) != -1) {
 				newws += threshold;
-				_newData = _newData.replaceAll(ws[i], "");
 			}
 		}
 		double deltaOld = 1.0 / (1 + Math.abs(avgAddLen - oldData.length()));
 		double deltaNew = 1.0 / (1 + Math.abs(avgAddLen - newData.length()));
-		oldws = _oldData.length() > 0 ? (deltaOld * oldws / _oldData.length()) : 0.0;
-		newws = _newData.length() > 0 ? (deltaNew * newws / _newData.length()) : 0.0;
+		oldws = oldData.length() > 0 ? (deltaOld * oldws / oldData.length()) : 0.0;
+		newws = newData.length() > 0 ? (deltaNew * newws / newData.length()) : 0.0;
 		//System.out.println(newData + ":" + newws + "\n" + oldData + ":" + oldws);
 		return newws > oldws ? newData : oldData;
 	}
