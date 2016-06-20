@@ -83,6 +83,10 @@ public class CJobQueue {
 				}
 				init();
 			}
+			catch (Throwable e) {
+				logger.error(e.getMessage(), e);
+				System.exit(0);
+			}
 		}
 	}
 	
@@ -104,6 +108,10 @@ public class CJobQueue {
 				catch (Exception e1) {
 				}
 				init();
+			}
+			catch (Throwable e) {
+				logger.error(e.getMessage(), e);
+				System.exit(0);
 			}
 		}
 		return null;
@@ -128,6 +136,10 @@ public class CJobQueue {
 				}
 				init();
 			}
+			catch (Throwable e) {
+				logger.error(e.getMessage(), e);
+				System.exit(0);
+			}
 		}
 	}
 	
@@ -150,6 +162,10 @@ public class CJobQueue {
 				}
 				init();
 			}
+			catch (Throwable e) {
+				logger.error(e.getMessage(), e);
+				System.exit(0);
+			}
 		}
 		return false;
 	}
@@ -170,6 +186,10 @@ public class CJobQueue {
 				catch (Exception e1) {
 				}
 				init();
+			}
+			catch (Throwable e) {
+				logger.error(e.getMessage(), e);
+				System.exit(0);
 			}
 		}
 		logger.error("Jedis Get Error!");
@@ -196,6 +216,10 @@ public class CJobQueue {
 				}
 				init();
 			}
+			catch (Throwable e) {
+				logger.error(e.getMessage(), e);
+				System.exit(0);
+			}
 		}
 	}
 	
@@ -218,6 +242,10 @@ public class CJobQueue {
 				}
 				init();
 			}
+			catch (Throwable e) {
+				logger.error(e.getMessage(), e);
+				System.exit(0);
+			}
 		}
 	}
 	
@@ -239,6 +267,10 @@ public class CJobQueue {
 				catch (Exception e1) {
 				}
 				init();
+			}
+			catch (Throwable e) {
+				logger.error(e.getMessage(), e);
+				System.exit(0);
 			}
 		}
 		return -1;
@@ -263,6 +295,10 @@ public class CJobQueue {
 				}
 				init();
 			}
+			catch (Throwable e) {
+				logger.error(e.getMessage(), e);
+				System.exit(0);
+			}
 		}
 	}
 	
@@ -284,6 +320,10 @@ public class CJobQueue {
 				catch (Exception e1) {
 				}
 				init();
+			}
+			catch (Throwable e) {
+				logger.error(e.getMessage(), e);
+				System.exit(0);
 			}
 		}
 		return null;

@@ -1,10 +1,8 @@
 package Job;
 
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import org.apache.logging.log4j.Logger;
 
@@ -28,18 +26,15 @@ public class CJobThread extends Thread {
 				int retryTimes = retry;
 				FutureTask<Object> task = new FutureTask<Object>(callable);
 				while (retryTimes-- > 0) {
-					Thread thread = new Thread(task, arg1 + "-1");
-					thread.start();
+					Thread thread = null;
 					try {
+						thread = new Thread(task, arg1 + "-1");
+						thread.start();
 						task.get(timeout, TimeUnit.SECONDS);
 						thread = null;
 						break;
 					}
-					catch (InterruptedException | ExecutionException | TimeoutException e) {
-						if (e.getMessage().equals("java.lang.OutOfMemoryError")) {
-							logger.error(e.getMessage(), e);
-							System.exit(0);
-						}
+					catch (Exception e) {
 						if (retryTimes == 0) {
 							logger.error(e.getMessage(), e);
 							if (exceptionCallback != null) exceptionCallback.run(e);
@@ -51,6 +46,10 @@ public class CJobThread extends Thread {
 							catch (InterruptedException e1) {
 							}
 						}
+					}
+					catch (Throwable e) {
+						logger.error(e.getMessage(), e);
+						System.exit(0);
 					}
 					thread = null;
 				}
@@ -68,18 +67,15 @@ public class CJobThread extends Thread {
 				int retryTimes = retry;
 				FutureTask<Object> task = new FutureTask<Object>(arg0);
 				while (retryTimes-- > 0) {
-					Thread thread = new Thread(task);
-					thread.start();
+					Thread thread = null;
 					try {
+						thread = new Thread(task);
+						thread.start();
 						task.get(timeout, TimeUnit.SECONDS);
 						thread = null;
 						break;
 					}
-					catch (InterruptedException | ExecutionException | TimeoutException e) {
-						if (e.getMessage().equals("java.lang.OutOfMemoryError")) {
-							logger.error(e.getMessage(), e);
-							System.exit(0);
-						}
+					catch (Exception e) {
 						if (retryTimes == 0) {
 							logger.error(e.getMessage(), e);
 							if (exceptionCallback != null) exceptionCallback.run(e);
@@ -91,6 +87,10 @@ public class CJobThread extends Thread {
 							catch (InterruptedException e1) {
 							}
 						}
+					}
+					catch (Throwable e) {
+						logger.error(e.getMessage(), e);
+						System.exit(0);
 					}
 					thread = null;
 				}
@@ -107,16 +107,17 @@ public class CJobThread extends Thread {
 			public void run() {
 				FutureTask<Object> task = new FutureTask<Object>(arg0);
 				Thread thread = new Thread(task, arg1 + "-1");
-				thread.start();
 				try {
+					thread.start();
 					task.get(timeout, TimeUnit.SECONDS);
 				}
-				catch (InterruptedException | ExecutionException | TimeoutException e) {
+				catch (Exception e) {
 					logger.error(e.getMessage(), e);
-					if (e.getMessage().equals("java.lang.OutOfMemoryError")) {
-						System.exit(0);
-					}
 					if (exceptionCallback != null) exceptionCallback.run(e);
+				}
+				catch (Throwable e) {
+					logger.error(e.getMessage(), e);
+					System.exit(0);
 				}
 				task = null;
 				thread = null;
@@ -132,16 +133,17 @@ public class CJobThread extends Thread {
 			public void run() {
 				FutureTask<Object> task = new FutureTask<Object>(arg0);
 				Thread thread = new Thread(task);
-				thread.start();
 				try {
+					thread.start();
 					task.get(timeout, TimeUnit.SECONDS);
 				}
-				catch (InterruptedException | ExecutionException | TimeoutException e) {
+				catch (Exception e) {
 					logger.error(e.getMessage(), e);
-					if (e.getMessage().equals("java.lang.OutOfMemoryError")) {
-						System.exit(0);
-					}
 					if (exceptionCallback != null) exceptionCallback.run(e);
+				}
+				catch (Throwable e) {
+					logger.error(e.getMessage(), e);
+					System.exit(0);
 				}
 				task = null;
 				thread = null;

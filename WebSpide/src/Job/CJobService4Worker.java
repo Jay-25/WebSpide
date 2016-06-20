@@ -89,6 +89,10 @@ public class CJobService4Worker {
 					catch (Exception e) {
 						logger.warn(e.getMessage(), e);
 					}
+					catch (Throwable e) {
+						logger.error(e.getMessage(), e);
+						System.exit(0);
+					}
 				}
 			}
 		}, "Trd-" + getClass().getName() + "-run").start();

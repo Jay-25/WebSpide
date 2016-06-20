@@ -143,27 +143,37 @@ public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 					if (isStop || isStopAll) break;
 					//
 					jobCounter.decrement();
-					new CJobThread(new Callable<Object>() {
-						
-						@Override
-						public Object call() throws Exception {
-							try {
-								parsePage(finalpage, linkItem, finalpageNum);
+					try {
+						new CJobThread(new Callable<Object>() {
+							
+							@Override
+							public Object call() throws Exception {
+								try {
+									parsePage(finalpage, linkItem, finalpageNum);
+								}
+								catch (Exception e) {
+									logger.error(e.getMessage(), e);
+								}
+								jobCounter.increment();
+								return null;
 							}
-							catch (Exception e) {
-								logger.error(e.getMessage(), e);
+						}, "Trd-" + getClass().getName() + "-run.FutureTask", paras.spideConfig.getAttempt(), 3 * 1000, paras.spideConfig
+						                .getTimeOut(), new CJobThread.ExceptionCallback() {
+							
+							@Override
+							public void run(Exception e) {
+								jobCounter.increment();
 							}
-							jobCounter.increment();
-							return null;
-						}
-					}, "Trd-" + getClass().getName() + "-run.FutureTask", paras.spideConfig.getAttempt(), 3 * 1000, paras.spideConfig
-					                .getTimeOut(), new CJobThread.ExceptionCallback() {
-						
-						@Override
-						public void run(Exception e) {
-							jobCounter.increment();
-						}
-					}).start();
+						}).start();
+					}
+					catch (Exception e) {
+						logger.error(e.getMessage(), e);
+						jobCounter.increment();
+					}
+					catch (Throwable e) {
+						logger.error(e.getMessage(), e);
+						System.exit(0);
+					}
 				}
 				links.clear();
 				links = null;
@@ -173,27 +183,37 @@ public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 			}
 			else {
 				jobCounter.resetJobNum();
-				new CJobThread(new Callable<Object>() {
-					
-					@Override
-					public Object call() throws Exception {
-						try {
-							parsePage(finalpage, null, finalpageNum);
+				try {
+					new CJobThread(new Callable<Object>() {
+						
+						@Override
+						public Object call() throws Exception {
+							try {
+								parsePage(finalpage, null, finalpageNum);
+							}
+							catch (Exception e) {
+								logger.error(e.getMessage(), e);
+							}
+							jobCounter.increment();
+							return null;
 						}
-						catch (Exception e) {
-							logger.error(e.getMessage(), e);
+					}, "Trd-" + getClass().getName() + "-run.default", paras.spideConfig.getAttempt(), 3 * 1000, paras.spideConfig
+					                .getTimeOut(), new CJobThread.ExceptionCallback() {
+						
+						@Override
+						public void run(Exception e) {
+							jobCounter.increment();
 						}
-						jobCounter.increment();
-						return null;
-					}
-				}, "Trd-" + getClass().getName() + "-run.default", paras.spideConfig.getAttempt(), 3 * 1000, paras.spideConfig
-				                .getTimeOut(), new CJobThread.ExceptionCallback() {
-					
-					@Override
-					public void run(Exception e) {
-						jobCounter.increment();
-					}
-				}).start();
+					}).start();
+				}
+				catch (Exception e) {
+					logger.error(e.getMessage(), e);
+					jobCounter.increment();
+				}
+				catch (Throwable e) {
+					logger.error(e.getMessage(), e);
+					System.exit(0);
+				}
 				while (!jobCounter.jobIsRunable() && !isStop && !isStopAll) {
 					sleep(50);
 				}
