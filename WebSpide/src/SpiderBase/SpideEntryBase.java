@@ -138,7 +138,7 @@ public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 					if (linkItem == null) continue;
 					while (!jobCounter.jobIsRunable() && !isStop && !isStopAll) {
 						sleep(5000);
-						System.out.println("SpideEnterBase...");
+						System.out.println("SpideEntryBase...");
 					}
 					if (isStop || isStopAll) break;
 					//
@@ -153,6 +153,10 @@ public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 								}
 								catch (Exception e) {
 									logger.error(e.getMessage(), e);
+								}
+								catch (Throwable e) {
+									logger.error(e.getMessage(), e);
+									System.exit(0);
 								}
 								jobCounter.increment();
 								return null;
@@ -193,6 +197,10 @@ public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 							}
 							catch (Exception e) {
 								logger.error(e.getMessage(), e);
+							}
+							catch (Throwable e) {
+								logger.error(e.getMessage(), e);
+								System.exit(0);
 							}
 							jobCounter.increment();
 							return null;

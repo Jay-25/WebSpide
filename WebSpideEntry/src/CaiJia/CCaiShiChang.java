@@ -134,6 +134,10 @@ public class CCaiShiChang extends SpideEntryBase {
 							catch (Exception e) {
 								e.printStackTrace();
 							}
+							catch (Throwable e) {
+								logger.error(e.getMessage(), e);
+								System.exit(0);
+							}
 							getNutrition = null;
 							jobCounter.increment();
 							return null;
@@ -209,6 +213,10 @@ public class CCaiShiChang extends SpideEntryBase {
 								}
 								catch (Exception e) {
 									logger.error(e.getMessage(), e);
+								}
+								catch (Throwable e) {
+									logger.error(e.getMessage(), e);
+									System.exit(0);
 								}
 								getPrice = null;
 								jobCounter.increment();
