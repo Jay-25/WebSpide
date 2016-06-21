@@ -185,9 +185,9 @@ public class Canjuke extends SpideEntryBase {
 		// 楼盘名称
 		regexTable.set("build_name", new CRegex("楼盘名称[:\\s]*([^\\(\\[]*)[\\s\\(\\[]", 1));
 		// 使用面积
-		regexTable.set("usage_area", new CRegex("面\\s*积[:\\s]*([0-9.]+)平米", 1), new CRegex("([0-9.]+)㎡", 1));
+		regexTable.set("usage_area", new CRegex("面\\s*积[:\\s]*([0-9.]+)平方?米", 1), new CRegex("([0-9.]+)㎡", 1));
 		// 建筑面积
-		regexTable.set("build_area", new CRegex("面\\s*积[:\\s]*([0-9.]+)平米", 1), new CRegex("([0-9.]+)㎡", 1));
+		regexTable.set("build_area", new CRegex("面\\s*积[:\\s]*([0-9.]+)平方?米", 1), new CRegex("([0-9.]+)㎡", 1));
 		// 年代
 		regexTable.set("build_time_year", new CRegex("([0-9]*)年建", 1), new CRegex("建?筑?造?年\\s*代[:\\s]*([0-9]*)", 1));
 		// 朝向
