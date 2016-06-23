@@ -43,6 +43,10 @@ public class CJobCounter {
 		return jobNum.get() > 0;
 	}
 	
+	public boolean hasBusyJob() {
+		return jobNum.get() < maxNum.get();
+	}
+	
 	public void decrement() {
 		if (jobNum.get() > 0) jobNum.decrementAndGet();
 	}
@@ -59,5 +63,9 @@ public class CJobCounter {
 	
 	public long getJobNum() {
 		return jobNum.get();
+	}
+	
+	public long getMaxNum() {
+		return maxNum.get();
 	}
 }

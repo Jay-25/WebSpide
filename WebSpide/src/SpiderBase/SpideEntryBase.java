@@ -129,21 +129,23 @@ public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 			pageNum++;
 			final int finalpageNum = pageNum;
 			final HtmlPage finalpage = page;
-			int threadNum = setThreadNum(finalpage, paras.spideParas);
+			long threadNum = setThreadNum(finalpage, paras.spideParas);
 			links = setLinks(finalpage, finalpageNum);
 			logger.info(page.getUrl().toString() + " sub links : " + links.size());
+			int waitShow = 0;
 			if (links != null && links.size() > 0) {
 				jobCounter.init(links.size(), threadNum);
 				for (final Object linkItem : links) {
 					if (linkItem == null) continue;
+					waitShow = 0;
 					while (!jobCounter.jobIsRunable() && !isStop && !isStopAll) {
-						sleep(5000);
-						System.out.println("SpideEntryBase...");
+						sleep(50);
+						if (++waitShow % 100 == 0) System.out.println("SpideEntryBase wating available job...");
 					}
 					if (isStop || isStopAll) break;
 					//
-					jobCounter.decrement();
 					try {
+						jobCounter.decrement();
 						logger.info(getClass().getName() + "(" + linkItem + ") - Begin(" + paras.spideConfig.getTimeOut() + ") [" + jobCounter.getJobNum() + "]");
 						new CJobThread(new Callable<Object>() {
 							
@@ -184,8 +186,10 @@ public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 				}
 				links.clear();
 				links = null;
-				while (jobCounter.getJobNum() < threadNum && !isStop && !isStopAll) {
+				waitShow = 0;
+				while (jobCounter.hasBusyJob() && !isStop && !isStopAll) {
 					sleep(50);
+					if (++waitShow % 100 == 0) System.out.println("SpideEntryBase waiting all jobs over... " + jobCounter.getJobNum() + "/" + jobCounter.getMaxNum());
 				}
 			}
 			else {
@@ -228,8 +232,10 @@ public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 					logger.error(e.getMessage(), e);
 					System.exit(0);
 				}
+				waitShow = 0;
 				while (!jobCounter.jobIsRunable() && !isStop && !isStopAll) {
 					sleep(50);
+					if (++waitShow % 100 == 0) System.out.println("SpideEntryBase waiting all jobs over... " + jobCounter.getJobNum() + "/" + jobCounter.getMaxNum());
 				}
 			}
 			//
