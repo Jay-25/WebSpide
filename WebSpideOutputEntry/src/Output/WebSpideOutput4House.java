@@ -369,7 +369,7 @@ public class WebSpideOutput4House extends CSpideOutput {
 									Date now = new Date();
 									timestamp = dateFormat.format(now);
 									now = null;
-									System.out.println("--- < " + clzName + ", " + timestamp + ", OK: " + numOk + ", Exist: " + numExit + ", Error: " + numError + " > ---");
+									logger.info("--- < " + clzName + ", " + timestamp + ", OK: " + numOk + ", Exist: " + numExit + ", Error: " + numError + " > ---");
 								}
 								Thread.sleep(50);
 							}

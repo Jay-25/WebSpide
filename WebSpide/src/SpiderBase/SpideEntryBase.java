@@ -144,6 +144,7 @@ public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 					//
 					jobCounter.decrement();
 					try {
+						logger.info(getClass().getName() + "(" + linkItem + ") - Begin(" + paras.spideConfig.getTimeOut() + ") [" + jobCounter.getJobNum() + "]");
 						new CJobThread(new Callable<Object>() {
 							
 							@Override
@@ -159,16 +160,18 @@ public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 									System.exit(0);
 								}
 								jobCounter.increment();
+								logger.info(getClass().getName() + "(" + linkItem + ") - End(OK) [" + jobCounter.getJobNum() + "]");
 								return null;
 							}
-						}, "Trd-" + getClass().getName() + "-run.FutureTask", paras.spideConfig.getAttempt(), 3 * 1000, paras.spideConfig
-						                .getTimeOut(), new CJobThread.ExceptionCallback() {
-							
-							@Override
-							public void run(Exception e) {
-								jobCounter.increment();
-							}
-						}).start();
+						}, "Trd-" + getClass().getName() + "-run.FutureTask", paras.spideConfig.getAttempt(), 3 * 1000, paras.spideConfig.getTimeOut(),
+						                new CJobThread.ExceptionCallback() {
+							                
+							                @Override
+							                public void run(Exception e) {
+								                jobCounter.increment();
+								                logger.warn(getClass().getName() + "(" + linkItem + ") - End(" + e.getMessage() + ") [" + jobCounter.getJobNum() + "]");
+							                }
+						                }).start();
 					}
 					catch (Exception e) {
 						logger.error(e.getMessage(), e);
@@ -188,6 +191,7 @@ public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 			else {
 				jobCounter.resetJobNum();
 				try {
+					logger.info(getClass().getName() + "() - Begin(" + paras.spideConfig.getTimeOut() + ") [" + jobCounter.getJobNum() + "]");
 					new CJobThread(new Callable<Object>() {
 						
 						@Override
@@ -203,16 +207,18 @@ public abstract class SpideEntryBase extends CPageParse implements IJobConsole {
 								System.exit(0);
 							}
 							jobCounter.increment();
+							logger.info(getClass().getName() + "() - End(OK) [" + jobCounter.getJobNum() + "]");
 							return null;
 						}
-					}, "Trd-" + getClass().getName() + "-run.default", paras.spideConfig.getAttempt(), 3 * 1000, paras.spideConfig
-					                .getTimeOut(), new CJobThread.ExceptionCallback() {
-						
-						@Override
-						public void run(Exception e) {
-							jobCounter.increment();
-						}
-					}).start();
+					}, "Trd-" + getClass().getName() + "-run.default", paras.spideConfig.getAttempt(), 3 * 1000, paras.spideConfig.getTimeOut(),
+					                new CJobThread.ExceptionCallback() {
+						                
+						                @Override
+						                public void run(Exception e) {
+							                jobCounter.increment();
+							                logger.warn(getClass().getName() + "() - End(" + e.getMessage() + ") [" + jobCounter.getJobNum() + "]");
+						                }
+					                }).start();
 				}
 				catch (Exception e) {
 					logger.error(e.getMessage(), e);
